@@ -1985,14 +1985,19 @@ function renderUrlStep(step){
   if(step==='input'){
     const hasKey2=!!(state.apiKey);
     body.innerHTML = `
-      ${!hasKey2?`<div style="background:var(--fire-pale);border:1px solid rgba(217,79,30,.2);border-radius:10px;padding:12px 15px;margin-bottom:14px">
-        <div style="font-size:.78rem;font-weight:700;color:var(--fire);margin-bottom:6px">🔑 Clé API Anthropic requise</div>
-        <p style="font-size:.79rem;color:var(--ink-3);margin-bottom:8px">Obtenez-la sur <a href="https://console.anthropic.com" target="_blank" style="color:var(--fire);font-weight:600">console.anthropic.com</a> — ~0,001€ par import</p>
-        <div style="display:flex;gap:7px">
-          <input type="password" id="url-api-key" placeholder="sk-ant-api03-..." style="flex:1;padding:8px 12px;border:1.5px solid var(--line-2);border-radius:8px;font-family:'Satoshi',sans-serif;font-size:.83rem;background:var(--paper-2)">
-          <button class="btn btn-primary btn-sm" onclick="saveUrlApiKey()">Enregistrer</button>
-        </div>
-      </div>`:`<div style="background:var(--herb-pale);border:1px solid rgba(61,122,74,.2);border-radius:9px;padding:8px 13px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:.79rem;color:var(--herb);font-weight:700">✅ Clé API configurée</span><button onclick="state.apiKey='';try{localStorage.removeItem('menuApiKey')}catch(e){}renderUrlStep('input')" style="font-size:.72rem;color:var(--ink-3);background:none;border:none;cursor:pointer;text-decoration:underline">Changer</button></div>`}
+      ${(state.groqKey||localStorage.getItem('groqKey'))?
+        `<div style="background:var(--herb-pale);border:1px solid rgba(61,122,74,.2);border-radius:9px;padding:8px 13px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:.79rem;color:var(--herb);font-weight:700">✅ Clé Groq configurée</span>
+          <button onclick="state.groqKey='';localStorage.removeItem('groqKey');renderUrlStep('input')" style="font-size:.72rem;color:var(--ink-3);background:none;border:none;cursor:pointer;text-decoration:underline">Changer</button>
+        </div>` :
+        `<div style="background:var(--fire-pale);border:1px solid rgba(217,79,30,.2);border-radius:10px;padding:12px 15px;margin-bottom:14px">
+          <div style="font-size:.78rem;font-weight:700;color:var(--fire);margin-bottom:4px">🔑 Clé Groq requise — <span style="color:var(--herb)">100% gratuit</span></div>
+          <p style="font-size:.78rem;color:var(--ink-3);margin-bottom:8px">Créez une clé gratuite sur <a href="https://console.groq.com" target="_blank" style="color:var(--fire);font-weight:600">console.groq.com</a> → API Keys</p>
+          <div style="display:flex;gap:7px">
+            <input type="password" id="groq-api-key" placeholder="gsk_..." style="flex:1;padding:8px 12px;border:1.5px solid var(--line-2);border-radius:8px;font-family:'Satoshi',sans-serif;font-size:.83rem;background:var(--paper-2)">
+            <button class="btn btn-primary btn-sm" onclick="saveGroqKey()">Enregistrer</button>
+          </div>
+        </div>`}
       <p style="color:var(--ink-3);font-size:.83rem;margin-bottom:16px">
         Allez sur Marmiton, 750g ou n'importe quel site de recette, 
         <strong style="color:var(--ink)">sélectionnez tout le texte</strong> (Ctrl+A puis Ctrl+C) 
@@ -2036,6 +2041,15 @@ function renderUrlStep(step){
   }
 }
 
+
+function saveGroqKey(){
+  const v = document.getElementById('groq-api-key')?.value.trim();
+  if(!v||!v.startsWith('gsk_')){toast('⚠️ Clé invalide (doit commencer par gsk_)');return;}
+  state.groqKey = v;
+  try{localStorage.setItem('groqKey', v);}catch(e){}
+  renderUrlStep('input');
+  toast('🔑 Clé Groq enregistrée !');
+}
 function saveUrlApiKey(){
   const v=document.getElementById('url-api-key')?.value.trim();
   if(!v||!v.startsWith('sk-')){toast('⚠️ Clé invalide');return;}
@@ -2047,22 +2061,26 @@ async function importFromText(){
   const rawText = document.getElementById('recipe-text-input')?.value.trim();
   const sourceUrl = document.getElementById('recipe-url-input')?.value.trim()||'';
   if(!rawText||rawText.length<30){toast('📋 Collez le texte de la recette d\'abord');return;}
-  const apiKey = state.apiKey||'';
-  if(!apiKey){toast('🔑 Configurez votre clé API d\'abord');renderUrlStep('input');return;}
   renderUrlStep('loading');
+  const groqKey = state.groqKey || localStorage.getItem('groqKey') || '';
+  if(!groqKey){toast('🔑 Configurez votre clé Groq d\'abord');renderUrlStep('input');return;}
   try{
-    const resp = await fetch("https://api.anthropic.com/v1/messages",{
+    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions",{
       method:"POST",
-      headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+groqKey},
       body:JSON.stringify({
-        model:"claude-haiku-4-5-20251001",
+        model:"llama-3.3-70b-versatile",
         max_tokens:2000,
-        messages:[{role:"user",content:"Extrait la recette de ce texte copié depuis un site web et retourne UNIQUEMENT un JSON valide sans backticks avec: name(string), emoji(1 emoji), time(number minutes), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array), ingredients(array of {name,qty,unit}), steps(array of strings complets). Ignore pub, navigation, commentaires, ustensiles. JSON seul.\n\nTexte:\n"+rawText.substring(0,6000)}]
+        temperature:0.1,
+        messages:[
+          {role:"system",content:"Tu es un assistant culinaire. Tu extrais les recettes depuis du texte et retournes UNIQUEMENT un JSON valide, sans backticks, sans texte autour."},
+          {role:"user",content:"Extrait la recette de ce texte et retourne UNIQUEMENT un JSON avec: name(string), emoji(1 emoji), time(number minutes), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array de strings), ingredients(array of {name:string,qty:string,unit:string}), steps(array of strings). Ignore pub, navigation, commentaires. JSON seul.\n\n"+rawText.substring(0,6000)}
+        ]
       })
     });
     const data = await resp.json();
-    if(data.error){state.errorMsg='Erreur API: '+data.error.message;renderUrlStep('error');return;}
-    let text=(data.content||[]).map(c=>c.text||'').join('').trim();
+    if(data.error){state.errorMsg='Erreur Groq: '+data.error.message;renderUrlStep('error');return;}
+    let text=(data.choices?.[0]?.message?.content||'').trim();
     text=text.replace(/```json|```/g,'').trim();
     let parsed;
     try{parsed=JSON.parse(text);}
