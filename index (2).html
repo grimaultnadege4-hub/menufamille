@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍽️ MenuFamille</title>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500&f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Firebase SDK -->
+<script type="module">
+// ═══ FIREBASE CONFIG ═══
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCCa51hD4kJPGlvVcznj3KQVV4E5bpcn6o",
+  authDomain: "menufamille-d1f22.firebaseapp.com",
+  projectId: "menufamille-d1f22",
+  storageBucket: "menufamille-d1f22.firebasestorage.app",
+  messagingSenderId: "740513619207",
+  appId: "1:740513619207:web:0cefb1df8878e50e78f9a2"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+// Expose Firebase functions to global scope
+window._fb = {
+  async load(familyCode) {
+    try {
+      const ref = doc(db, 'families', familyCode);
+      const snap = await getDoc(ref);
+      return snap.exists() ? snap.data() : null;
+    } catch(e) {
+      console.error('Firebase load error:', e);
+      throw e;
+    }
+  },
+  async save(familyCode, data) {
+    try {
+      const ref = doc(db, 'families', familyCode);
+      await setDoc(ref, data, { merge: true });
+    } catch(e) {
+      console.error('Firebase save error:', e);
+      throw e;
+    }
+  },
+  listen(familyCode, callback) {
+    const ref = doc(db, 'families', familyCode);
+    return onSnapshot(ref, (snap) => {
+      if (snap.exists()) callback(snap.data());
+    });
+  }
+};
+
+console.log('Firebase initialisé ✅');
+</script>
+<style>
+/* ══════════════════════════════════════════════════════
+   MENUFAMILLE v3 — Édition Gastronomique
+   Aesthetic: Éditorial culinaire · Chaud · Organique
+   Fonts: Cabinet Grotesk (titres) + Satoshi (corps)
+══════════════════════════════════════════════════════ */
+
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500&f[]=satoshi@700,500,400&display=swap');
+
+:root {
+  --ink:        #13100d;
+  --ink-2:      #3d3530;
+  --ink-3:      #7a706a;
+  --ink-4:      #b5ada6;
+
+  --canvas:     #faf7f3;
+  --paper:      #ffffff;
+  --paper-2:    #f5f1ec;
+  --paper-3:    #ede8e1;
+
+  --fire:       #d94f1e;
+  --fire-soft:  #f07040;
+  --fire-glow:  #ffeee8;
+  --fire-pale:  #fff5f1;
+
+  --herb:       #3d7a4a;
+  --herb-soft:  #6dab7a;
+  --herb-pale:  #edf6ef;
+
+  --ocean:      #2c5f9e;
+  --ocean-pale: #eaf1fb;
+
+  --gold:       #c49a3c;
+  --gold-pale:  #fdf6e3;
+
+  --line:       rgba(19,16,13,.08);
+  --line-2:     rgba(19,16,13,.14);
+
+  --sh-xs: 0 1px 3px rgba(19,16,13,.04), 0 2px 8px rgba(19,16,13,.04);
+  --sh-s:  0 2px 8px rgba(19,16,13,.06), 0 6px 20px rgba(19,16,13,.06);
+  --sh-m:  0 4px 16px rgba(19,16,13,.08), 0 12px 40px rgba(19,16,13,.09);
+  --sh-l:  0 12px 48px rgba(19,16,13,.14), 0 4px 16px rgba(19,16,13,.08);
+
+  --r1: 6px; --r2: 12px; --r3: 18px; --r4: 26px; --r5: 36px;
+  --ease: cubic-bezier(.25,.46,.45,.94);
+  --spring: cubic-bezier(.34,1.56,.64,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Satoshi', 'Inter', system-ui, sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ════════════════════════════
+   LOGIN SCREEN
+════════════════════════════ */
+#login-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+}
+
+#login-screen::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(217,79,30,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(196,154,60,.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+#login-screen::after {
+  content: '🍽️';
+  position: absolute; bottom: -40px; right: -20px;
+  font-size: 220px; opacity: .04; pointer-events: none;
+  filter: grayscale(1);
+  transform: rotate(-15deg);
+}
+
+.login-box {
+  background: var(--paper);
+  border-radius: var(--r5);
+  padding: 48px 44px;
+  width: 100%; max-width: 460px;
+  box-shadow: 0 60px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08);
+  position: relative; z-index: 1;
+  animation: loginIn .5s var(--ease) both;
+}
+
+@keyframes loginIn {
+  from { opacity: 0; transform: translateY(24px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.login-logo {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
+}
+.login-logo-icon {
+  width: 46px; height: 46px; background: var(--fire);
+  border-radius: var(--r2); display: flex; align-items: center;
+  justify-content: center; font-size: 1.5rem;
+  box-shadow: 0 4px 16px rgba(217,79,30,.4);
+}
+.login-logo-text {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.6rem; font-weight: 800; color: var(--ink); letter-spacing: -.5px;
+}
+.login-logo-text span { color: var(--fire); }
+
+.login-box .sub { color: var(--ink-3); font-size: .9rem; margin-bottom: 32px; line-height: 1.5; }
+
+.family-code-row { display: flex; gap: 8px; margin-bottom: 22px; }
+.family-code-row input {
+  flex: 1; padding: 13px 18px;
+  border: 2px solid var(--paper-3); border-radius: var(--r2);
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.1rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 4px; text-align: center;
+  background: var(--paper-2); transition: all .2s; color: var(--ink);
+}
+.family-code-row input:focus {
+  outline: none; border-color: var(--fire);
+  background: var(--fire-pale); box-shadow: 0 0 0 4px rgba(217,79,30,.1);
+}
+
+.members-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 22px; max-height: 270px; overflow-y: auto; }
+.member-btn {
+  display: flex; align-items: center; gap: 13px;
+  padding: 12px 16px; border: 1.5px solid var(--paper-3);
+  border-radius: var(--r2); background: var(--paper-2);
+  cursor: pointer; transition: all .2s var(--ease); text-align: left;
+}
+.member-btn:hover { border-color: var(--fire); background: var(--fire-pale); transform: translateX(4px); }
+.member-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+.member-info .name { font-weight: 700; font-size: .95rem; color: var(--ink); }
+.member-info .role { font-size: .75rem; color: var(--ink-3); margin-top: 1px; }
+
+.divider { text-align: center; color: var(--ink-4); font-size: .78rem; margin: 18px 0; position: relative; font-weight: 500; }
+.divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--paper-3); }
+.divider::before { left: 0; } .divider::after { right: 0; }
+
+.new-member-form { display: flex; flex-direction: column; gap: 10px; }
+.new-member-form input {
+  padding: 11px 14px; border: 1.5px solid var(--paper-3);
+  border-radius: var(--r2); font-family: 'Satoshi', sans-serif;
+  font-size: .88rem; background: var(--paper-2); color: var(--ink); transition: all .2s;
+}
+.new-member-form input:focus { outline: none; border-color: var(--fire); background: var(--fire-pale); }
+.avatar-picker { display: flex; gap: 7px; flex-wrap: wrap; }
+.av-opt {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 2px solid var(--paper-3); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; font-size: 1.2rem;
+  transition: all .18s var(--spring); background: var(--paper-2);
+}
+.av-opt.sel { border-color: var(--fire); background: var(--fire-pale); transform: scale(1.18); }
+
+/* ════════════════════════════
+   HEADER
+════════════════════════════ */
+header {
+  background: var(--ink);
+  padding: 0 32px;
+  height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 200;
+}
+
+header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px; background: rgba(255,255,255,.07);
+}
+
+.hdr-logo {
+  display: flex; align-items: center; gap: 10px;
+}
+.hdr-logo-icon {
+  width: 32px; height: 32px; background: var(--fire);
+  border-radius: var(--r1); display: flex; align-items: center;
+  justify-content: center; font-size: 1rem;
+}
+header h1 {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.3rem; font-weight: 800;
+  color: #fff; letter-spacing: -.4px;
+}
+header h1 span { color: var(--fire-soft); }
+
+.hdr-right { display: flex; align-items: center; gap: 8px; }
+
+.current-user {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 40px; padding: 5px 14px 5px 5px;
+  cursor: pointer; transition: all .2s;
+}
+.current-user:hover { background: rgba(255,255,255,.13); }
+.user-av { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+.user-name { font-size: .8rem; color: rgba(255,255,255,.88); font-weight: 600; }
+.family-badge {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--r1); padding: 3px 9px;
+  font-size: .68rem; color: rgba(255,255,255,.5);
+  letter-spacing: 2px; font-weight: 700;
+  font-family: 'Cabinet Grotesk', sans-serif;
+}
+
+/* ════════════════════════════
+   SYNC BAR
+════════════════════════════ */
+.sync-bar {
+  background: var(--ocean-pale); border-bottom: 1px solid rgba(44,95,158,.12);
+  padding: 5px 32px; display: flex; align-items: center; gap: 8px;
+  font-size: .75rem; color: var(--ocean); font-weight: 600;
+}
+.sync-bar .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ocean); animation: pulse 1.6s ease-in-out infinite; flex-shrink: 0; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.7)} }
+.sync-bar.synced { background: var(--herb-pale); border-color: rgba(61,122,74,.15); color: var(--herb); }
+.sync-bar.synced .dot { background: var(--herb); animation: none; }
+
+/* ════════════════════════════
+   TABS — pill style
+════════════════════════════ */
+.tabs {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  display: flex; padding: 0 32px;
+  overflow-x: auto; scrollbar-width: none; gap: 0;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  padding: 15px 18px; cursor: pointer;
+  font-weight: 500; font-size: .82rem; color: var(--ink-3);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: all .18s var(--ease);
+  white-space: nowrap; user-select: none; letter-spacing: .1px;
+}
+.tab.active {
+  color: var(--fire); border-bottom-color: var(--fire);
+  font-weight: 700;
+}
+.tab:hover:not(.active) { color: var(--ink-2); background: var(--paper-2); }
+
+/* ════════════════════════════
+   LAYOUT
+════════════════════════════ */
+.container { max-width: 1380px; margin: 0 auto; padding: 28px 32px; }
+.section { display: none; } .section.active { display: block; }
+
+/* Section title */
+.section-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 24px; gap: 16px; flex-wrap: wrap;
+}
+.section-title {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.8rem; font-weight: 800; color: var(--ink);
+  letter-spacing: -.5px; line-height: 1;
+}
+.section-title span { color: var(--fire); }
+.section-sub { font-size: .83rem; color: var(--ink-3); font-weight: 400; margin-top: 4px; }
+
+/* ════════════════════════════
+   BUTTONS
+════════════════════════════ */
+.btn {
+  padding: 9px 18px; border-radius: var(--r2); border: none;
+  cursor: pointer; font-family: 'Satoshi', sans-serif;
+  font-size: .82rem; font-weight: 700;
+  transition: all .2s var(--ease);
+  display: inline-flex; align-items: center; gap: 6px;
+  letter-spacing: .1px; white-space: nowrap;
+}
+.btn-primary {
+  background: var(--fire); color: #fff;
+  box-shadow: 0 2px 0 var(--fire-glow) inset, 0 3px 10px rgba(217,79,30,.3);
+}
+.btn-primary:hover { background: #c2431a; transform: translateY(-1px); box-shadow: 0 5px 18px rgba(217,79,30,.4); }
+.btn-primary:active { transform: translateY(0); }
+.btn-secondary { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.18); }
+.btn-secondary:hover { background: rgba(255,255,255,.18); }
+.btn-sage { background: var(--herb); color: #fff; box-shadow: 0 3px 10px rgba(61,122,74,.25); }
+.btn-sage:hover { background: #326040; transform: translateY(-1px); }
+.btn-blue { background: var(--ocean); color: #fff; box-shadow: 0 3px 10px rgba(44,95,158,.25); }
+.btn-blue:hover { background: #214d87; transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent; color: var(--ink-2);
+  border: 1.5px solid var(--line-2);
+}
+.btn-ghost:hover { border-color: var(--fire); color: var(--fire); background: var(--fire-pale); }
+.btn-white { background: #fff; color: var(--fire); font-weight: 700; }
+.btn-sm { padding: 6px 13px; font-size: .76rem; border-radius: var(--r1); }
+.btn-xs { padding: 4px 9px; font-size: .71rem; border-radius: var(--r1); }
+
+/* ════════════════════════════
+   SETTINGS BAR
+════════════════════════════ */
+.settings-bar {
+  background: var(--paper); border-radius: var(--r3);
+  padding: 14px 22px; display: flex; gap: 18px;
+  align-items: center; flex-wrap: wrap;
+  margin-bottom: 22px; box-shadow: var(--sh-xs);
+  border: 1px solid var(--line);
+}
+.sg { display: flex; align-items: center; gap: 8px; }
+.sg label {
+  font-size: .74rem; font-weight: 700; color: var(--ink-4);
+  white-space: nowrap; text-transform: uppercase; letter-spacing: .6px;
+}
+.sg select, .sg input[type=date] {
+  padding: 7px 12px; border: 1px solid var(--line-2);
+  border-radius: var(--r1); font-family: 'Satoshi', sans-serif;
+  font-size: .82rem; color: var(--ink); background: var(--paper-2);
+  cursor: pointer; transition: all .18s;
+}
+.sg select:focus, .sg input:focus { outline: none; border-color: var(--fire); }
+.season-badge {
+  padding: 5px 13px; border-radius: 20px;
+  font-size: .76rem; font-weight: 700;
+  background: var(--herb-pale); color: var(--herb);
+  border: 1px solid rgba(61,122,74,.2);
+}
+
+/* ════════════════════════════
+   WEEK GRID
+════════════════════════════ */
+.week-grid {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  gap: 10px; margin-bottom: 22px;
+}
+
+.day-card {
+  background: var(--paper); border-radius: var(--r3);
+  overflow: hidden; border: 1px solid var(--line);
+  box-shadow: var(--sh-xs);
+  transition: all .25s var(--ease);
+}
+.day-card:hover {
+  box-shadow: var(--sh-m); border-color: var(--fire-soft);
+  transform: translateY(-3px);
+}
+
+.day-header {
+  background: linear-gradient(160deg, #1d1814 0%, #2e261e 100%);
+  padding: 11px 10px; text-align: center; position: relative; overflow: hidden;
+}
+.day-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px; background: var(--fire); opacity: 0;
+  transition: opacity .2s;
+}
+.day-card:hover .day-header::after { opacity: 1; }
+
+.day-name {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: .68rem; font-weight: 800;
+  color: rgba(255,255,255,.9); text-transform: uppercase; letter-spacing: 1.5px;
+}
+.day-date { font-size: .62rem; color: rgba(255,255,255,.38); margin-top: 2px; }
+
+.day-meals { padding: 9px 8px; }
+
+.meal-slot {
+  margin-bottom: 9px; padding-bottom: 9px;
+  border-bottom: 1px solid var(--line);
+}
+.meal-slot:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+.meal-label {
+  font-size: .56rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .9px; color: var(--ink-4); margin-bottom: 5px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+}
+
+.meal-btn {
+  width: 100%; padding: 7px 8px;
+  border: 1.5px dashed var(--paper-3);
+  border-radius: var(--r1); background: transparent; cursor: pointer;
+  font-family: 'Satoshi', sans-serif; font-size: .69rem; color: var(--ink-4);
+  text-align: left; transition: all .2s var(--ease);
+  min-height: 30px; line-height: 1.3; position: relative;
+}
+.meal-btn:hover {
+  border-color: var(--fire); color: var(--fire);
+  background: var(--fire-pale); border-style: solid;
+}
+.meal-btn.filled {
+  background: linear-gradient(135deg, var(--fire-pale), var(--fire-glow));
+  border: 1px solid rgba(217,79,30,.2); color: var(--ink); padding-right: 22px;
+}
+.meal-btn.filled:hover { border-color: var(--fire); background: var(--fire-pale); }
+
+.meal-remove {
+  position: absolute; top: 4px; right: 5px;
+  color: var(--ink-4); font-size: .8rem; line-height: 1;
+  background: none; border: none; cursor: pointer; padding: 2px;
+  border-radius: 3px; transition: all .15s;
+}
+.meal-remove:hover { color: var(--fire); background: rgba(217,79,30,.1); }
+
+.meal-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; gap: 3px; }
+
+.meal-persons-badge {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: rgba(217,79,30,.1); border-radius: 5px;
+  padding: 2px 6px; font-size: .6rem; font-weight: 700; color: var(--fire);
+}
+
+.meal-author { font-size: .59rem; color: var(--ink-3); display: flex; align-items: center; gap: 2px; }
+
+.persons-ctrl { display: flex; align-items: center; gap: 2px; }
+.persons-ctrl button {
+  width: 17px; height: 17px; border-radius: 50%;
+  border: 1.5px solid var(--fire); background: transparent;
+  cursor: pointer; color: var(--fire); font-size: .72rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s var(--spring); flex-shrink: 0;
+}
+.persons-ctrl button:hover { background: var(--fire); color: #fff; transform: scale(1.1); }
+.persons-ctrl span { font-size: .69rem; font-weight: 700; color: var(--ink); min-width: 13px; text-align: center; }
+
+.qr-mini {
+  width: 34px; height: 34px; flex-shrink: 0; background: white;
+  border: 1px solid var(--line-2); border-radius: 5px;
+  overflow: hidden; display: flex; align-items: center; justify-content: center; margin-top: 5px;
+}
+.qr-mini img, .qr-mini canvas { width: 34px!important; height: 34px!important; }
+
+/* ════════════════════════════
+   MISSING / WARNINGS
+════════════════════════════ */
+.day-missing { border-color: #e8a020!important; }
+.missing-warn {
+  font-size: .58rem; color: #7a4800; font-weight: 600;
+  background: #fff8e6; border-radius: 5px;
+  padding: 3px 7px; margin-top: 4px; text-align: center;
+  border: 1px solid #f0d070;
+}
+
+/* ════════════════════════════
+   COURSE BADGES
+════════════════════════════ */
+.course-cat-badge { display: inline-block; font-size: .53rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; padding: 1px 6px; border-radius: 4px; margin-bottom: 2px; }
+.badge-apero  { background: #f3e8fb; color: #6b21a8; }
+.badge-entree { background: var(--ocean-pale); color: var(--ocean); }
+.badge-plat   { background: var(--herb-pale); color: var(--herb); }
+.badge-dessert{ background: var(--gold-pale); color: #8a6000; }
+
+/* ════════════════════════════
+   SUGGESTIONS PANEL
+════════════════════════════ */
+.suggestions-panel {
+  background: var(--ocean-pale); border: 1px solid rgba(44,95,158,.15);
+  border-radius: var(--r3); padding: 18px 22px; margin-bottom: 22px;
+}
+.suggestions-panel h3 {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.05rem; font-weight: 800; color: var(--ocean);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.suggestions-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.suggestion-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--paper); border: 1px solid rgba(44,95,158,.2);
+  border-radius: 30px; padding: 6px 12px 6px 7px;
+  cursor: pointer; transition: all .2s var(--ease);
+  font-size: .79rem; box-shadow: var(--sh-xs);
+}
+.suggestion-chip:hover { border-color: var(--fire); background: var(--fire-pale); transform: translateY(-2px); box-shadow: var(--sh-s); }
+.suggestion-chip .sug-av { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .9rem; }
+.suggestion-chip .sug-name { font-weight: 700; color: var(--ink); }
+.suggestion-chip .sug-sub { font-size: .69rem; color: var(--ink-3); }
+.suggestion-chip .sug-remove { color: var(--ink-4); margin-left: 3px; cursor: pointer; transition: color .15s; }
+.suggestion-chip .sug-remove:hover { color: var(--fire); }
+
+.add-suggestion-btn {
+  display: flex; align-items: center; gap: 6px; background: transparent;
+  border: 1.5px dashed rgba(44,95,158,.3); border-radius: 30px;
+  padding: 6px 16px; cursor: pointer; color: var(--ocean);
+  font-size: .79rem; font-weight: 700; font-family: 'Satoshi', sans-serif; transition: all .2s;
+}
+.add-suggestion-btn:hover { background: white; border-color: var(--ocean); }
+
+/* ════════════════════════════
+   MODAL / OVERLAY
+════════════════════════════ */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(13,10,8,.7); backdrop-filter: blur(8px);
+  z-index: 1000; align-items: center; justify-content: center; padding: 16px;
+}
+.overlay.open { display: flex; animation: fadeIn .22s var(--ease) both; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--paper); border-radius: var(--r4);
+  max-width: 980px; width: 100%; max-height: 93vh; overflow-y: auto;
+  box-shadow: var(--sh-l), 0 0 0 1px rgba(255,255,255,.08);
+  animation: slideUp .28s var(--spring) both;
+}
+@keyframes slideUp {
+  from { transform: translateY(20px) scale(.97); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.modal-header {
+  padding: 24px 28px 18px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; background: var(--paper); z-index: 2;
+  backdrop-filter: blur(12px);
+}
+.modal-header h2 {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 1.5rem; font-weight: 800; letter-spacing: -.4px;
+}
+.modal-close {
+  background: var(--paper-2); border: 1px solid var(--line);
+  font-size: .95rem; cursor: pointer; color: var(--ink-3);
+  padding: 8px 10px; border-radius: var(--r1);
+  transition: all .18s; line-height: 1; font-weight: 700;
+}
+.modal-close:hover { background: var(--fire-pale); color: var(--fire); border-color: rgba(217,79,30,.3); }
+
+.modal-body { padding: 24px 28px; }
+
+/* Recherche */
+.recipe-search-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+.recipe-search-bar input {
+  flex: 1; padding: 11px 16px; border: 1.5px solid var(--line-2);
+  border-radius: var(--r2); font-family: 'Satoshi', sans-serif; font-size: .9rem;
+  background: var(--paper-2); transition: all .2s; color: var(--ink);
+}
+.recipe-search-bar input:focus {
+  outline: none; border-color: var(--fire); background: var(--paper);
+  box-shadow: 0 0 0 4px rgba(217,79,30,.08);
+}
+
+/* Filter chips */
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.chip {
+  padding: 5px 13px; border-radius: 20px;
+  border: 1.5px solid var(--line-2); background: transparent;
+  cursor: pointer; font-size: .77rem; font-family: 'Satoshi', sans-serif;
+  color: var(--ink-3); transition: all .18s var(--ease); font-weight: 500;
+}
+.chip.active { background: var(--fire); border-color: var(--fire); color: #fff; font-weight: 700; box-shadow: 0 2px 8px rgba(217,79,30,.3); }
+.chip:hover:not(.active) { border-color: var(--fire); color: var(--fire); background: var(--fire-pale); }
+
+/* Recipe grid */
+.recipes-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 13px; }
+
+.recipe-card {
+  border: 1.5px solid var(--line); border-radius: var(--r2);
+  overflow: hidden; cursor: pointer; transition: all .22s var(--ease);
+  background: var(--paper); position: relative;
+}
+.recipe-card:hover { border-color: var(--fire-soft); transform: translateY(-4px); box-shadow: var(--sh-m); }
+.recipe-card.selected { border-color: var(--fire); background: var(--fire-pale); box-shadow: 0 0 0 3px rgba(217,79,30,.15); }
+
+.recipe-emoji { font-size: 2.5rem; text-align: center; padding: 18px 10px 12px; background: var(--paper-2); }
+.recipe-info { padding: 10px 12px 12px; }
+.recipe-name { font-weight: 700; font-size: .84rem; margin-bottom: 5px; color: var(--ink); line-height: 1.3; }
+.recipe-meta { font-size: .7rem; color: var(--ink-3); display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.recipe-tag { background: var(--herb-pale); color: var(--herb); padding: 2px 7px; border-radius: 4px; font-size: .64rem; font-weight: 700; }
+.recipe-tag.saison { background: var(--gold-pale); color: var(--gold); }
+.recipe-tag.family { background: var(--ocean-pale); color: var(--ocean); }
+.recipe-author { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,.94); backdrop-filter: blur(6px); border-radius: 20px; padding: 2px 8px; font-size: .61rem; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; gap: 3px; border: 1px solid var(--line-2); }
+
+/* Recipe detail */
+.recipe-detail { display: none; } .recipe-detail.open { display: block; }
+.recipe-detail-header { display: flex; gap: 20px; margin-bottom: 24px; align-items: flex-start; }
+.recipe-detail-emoji {
+  font-size: 3.8rem; background: var(--paper-2); border-radius: var(--r3);
+  padding: 18px; text-align: center; min-width: 110px; border: 1px solid var(--line);
+}
+.recipe-detail-meta h3 { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: 9px; letter-spacing: -.5px; }
+.detail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.detail-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+.stat {
+  text-align: center; background: var(--paper-2); padding: 10px 16px;
+  border-radius: var(--r2); border: 1px solid var(--line); min-width: 64px;
+}
+.stat-val { font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--fire); }
+.stat-key { font-size: .65rem; color: var(--ink-3); margin-top: 2px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; }
+.recipe-sections { display: grid; grid-template-columns: 1fr 1.5fr; gap: 24px; }
+.rsection-title { font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800; font-size: .75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-3); margin-bottom: 10px; }
+.ingredient-list { list-style: none; }
+.ingredient-list li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: .84rem; display: flex; justify-content: space-between; align-items: center; }
+.ingredient-qty { font-weight: 700; color: var(--fire); }
+.steps-list { list-style: none; counter-reset: steps; }
+.steps-list li { counter-increment: steps; padding: 8px 0 8px 36px; border-bottom: 1px solid var(--line); font-size: .84rem; position: relative; line-height: 1.6; color: var(--ink-2); }
+.steps-list li::before { content: counter(steps); position: absolute; left: 0; top: 9px; width: 24px; height: 24px; background: var(--fire); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .68rem; font-weight: 800; }
+.back-btn { color: var(--fire); background: none; border: none; cursor: pointer; font-size: .85rem; font-weight: 700; padding: 0 0 16px; display: flex; align-items: center; gap: 5px; transition: opacity .2s; }
+.back-btn:hover { opacity: .7; }
+.persons-selector { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r2); padding: 14px 18px; margin-bottom: 18px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.persons-selector label { font-size: .83rem; font-weight: 700; color: var(--ink-2); }
+.persons-stepper { display: flex; align-items: center; gap: 10px; }
+.persons-stepper button { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--fire); background: transparent; cursor: pointer; color: var(--fire); font-size: .95rem; font-weight: 800; display: flex; align-items: center; justify-content: center; transition: all .18s var(--spring); }
+.persons-stepper button:hover { background: var(--fire); color: #fff; transform: scale(1.1); }
+.persons-stepper span { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1.2rem; font-weight: 800; color: var(--ink); min-width: 26px; text-align: center; }
+
+/* ════════════════════════════
+   COURSES / SHOPPING
+════════════════════════════ */
+.courses-section { background: var(--paper); border-radius: var(--r3); padding: 24px; box-shadow: var(--sh-xs); border: 1px solid var(--line); }
+.courses-list { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+.cat-section h4 { font-family: 'Cabinet Grotesk', sans-serif; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-3); margin-bottom: 9px; padding-bottom: 7px; border-bottom: 2px solid var(--paper-3); }
+.course-item { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .85rem; }
+.course-item input[type=checkbox] { accent-color: var(--fire); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+.course-item label { flex: 1; cursor: pointer; font-weight: 500; transition: all .2s; }
+.course-item label.chk { text-decoration: line-through; color: var(--ink-4); }
+.course-qty { font-size: .74rem; color: var(--ink-3); font-weight: 700; white-space: nowrap; }
+.course-add-row { display: flex; gap: 8px; margin-top: 16px; }
+.course-add-row input { flex: 1; padding: 10px 14px; border: 1.5px solid var(--line-2); border-radius: var(--r1); font-family: 'Satoshi', sans-serif; font-size: .84rem; background: var(--paper-2); color: var(--ink); }
+.course-add-row input:focus { outline: none; border-color: var(--fire); background: var(--paper); }
+.itm-banner { background: linear-gradient(135deg, #aa0012, #e30613, #ff2233); border-radius: var(--r2); padding: 14px 20px; color: #fff; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 9px; box-shadow: 0 6px 20px rgba(227,6,19,.28); }
+.itm-logo { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1.15rem; font-weight: 800; font-style: italic; }
+.itm-logo span { display: block; font-size: .66rem; font-style: normal; font-weight: 500; opacity: .8; margin-top: 2px; font-family: 'Satoshi', sans-serif; }
+
+/* ════════════════════════════
+   PREFERENCES
+════════════════════════════ */
+.prefs-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.pref-card { background: var(--paper); border-radius: var(--r3); padding: 22px; box-shadow: var(--sh-xs); border: 1px solid var(--line); }
+.pref-card h3 { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1.05rem; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.pref-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: .85rem; color: var(--ink-2); }
+.toggle { width: 38px; height: 22px; background: var(--paper-3); border-radius: 11px; position: relative; cursor: pointer; transition: background .22s; flex-shrink: 0; }
+.toggle.on { background: var(--herb); }
+.toggle::after { content: ''; position: absolute; width: 18px; height: 18px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: left .22s var(--spring); box-shadow: 0 1px 5px rgba(0,0,0,.2); }
+.toggle.on::after { left: 18px; }
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.tag { padding: 4px 10px; border-radius: var(--r1); font-size: .75rem; background: var(--paper-2); border: 1.5px solid var(--line-2); cursor: pointer; transition: all .18s; font-weight: 500; }
+.tag:hover { background: var(--fire-pale); border-color: var(--fire); color: var(--fire); }
+.pref-add-row { display: flex; gap: 7px; margin-top: 12px; }
+.pref-add-row input { flex: 1; padding: 7px 11px; border: 1.5px solid var(--line-2); border-radius: var(--r1); font-family: 'Satoshi', sans-serif; font-size: .8rem; background: var(--paper-2); }
+
+/* ════════════════════════════
+   PHOTO / AI
+════════════════════════════ */
+.photo-import-zone { border: 2px dashed var(--line-2); border-radius: var(--r2); padding: 32px 18px; text-align: center; cursor: pointer; transition: all .25s; background: var(--paper-2); position: relative; }
+.photo-import-zone:hover { border-color: var(--fire); background: var(--fire-pale); }
+.photo-preview { max-width: 100%; max-height: 220px; border-radius: var(--r2); margin: 12px auto; display: block; object-fit: cover; }
+.ai-analyzing { background: linear-gradient(135deg, var(--fire-pale), var(--fire-glow)); border-radius: var(--r2); padding: 24px; text-align: center; margin: 14px 0; border: 1px solid rgba(217,79,30,.2); }
+.ai-analyzing .spinner { width: 38px; height: 38px; border: 3px solid var(--paper-3); border-top-color: var(--fire); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-result { background: var(--paper); border: 1.5px solid rgba(109,171,122,.3); border-radius: var(--r2); padding: 22px; margin-top: 16px; }
+.field { margin-bottom: 12px; }
+.field label { font-size: .69rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-3); display: block; margin-bottom: 5px; font-family: 'Cabinet Grotesk', sans-serif; }
+.field input, .field textarea, .field select { width: 100%; padding: 9px 13px; border: 1.5px solid var(--line-2); border-radius: var(--r1); font-family: 'Satoshi', sans-serif; font-size: .85rem; background: var(--paper-2); color: var(--ink); transition: all .2s; }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--fire); background: var(--paper); }
+.field textarea { min-height: 80px; resize: vertical; }
+.ing-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+.ing-row input { flex: 1; padding: 7px 10px; border: 1.5px solid var(--line-2); border-radius: var(--r1); font-family: 'Satoshi', sans-serif; font-size: .8rem; background: var(--paper-2); color: var(--ink); }
+.del-btn { background: none; border: none; cursor: pointer; color: var(--ink-4); font-size: 1rem; padding: 4px; border-radius: 5px; flex-shrink: 0; transition: all .15s; }
+.del-btn:hover { color: var(--fire); background: var(--fire-pale); }
+
+/* ════════════════════════════
+   WEB SEARCH
+════════════════════════════ */
+.web-search-box { background: var(--ocean-pale); border: 1px solid rgba(44,95,158,.18); border-radius: var(--r2); padding: 17px 20px; margin-bottom: 18px; }
+.web-search-box h4 { font-family: 'Cabinet Grotesk', sans-serif; font-size: .84rem; font-weight: 800; color: var(--ocean); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.web-search-row { display: flex; gap: 8px; }
+.web-search-row input { flex: 1; padding: 10px 14px; border: 1.5px solid rgba(44,95,158,.2); border-radius: var(--r1); font-family: 'Satoshi', sans-serif; font-size: .86rem; background: white; color: var(--ink); }
+.web-search-row input:focus { outline: none; border-color: var(--ocean); }
+
+/* ════════════════════════════
+   MEMBRE DELETE
+════════════════════════════ */
+.member-del-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--ink-4); font-size: .8rem; padding: 5px 8px; border-radius: var(--r1); transition: all .18s; }
+.member-del-btn:hover { background: #fde8e8; color: #b91c1c; }
+
+/* ════════════════════════════
+   PRINT
+════════════════════════════ */
+.print-preview { border: 1px solid var(--line); border-radius: var(--r2); padding: 24px; background: #fff; margin-top: 20px; }
+.print-week-header { text-align: center; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 3px solid var(--fire); }
+.print-week-header h2 { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2rem; color: var(--fire); font-weight: 800; }
+.print-week-header p { color: var(--ink-3); font-size: .85rem; margin-top: 3px; }
+.print-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 7px; margin-bottom: 22px; }
+.print-day { border: 1px solid var(--line-2); border-radius: var(--r1); overflow: hidden; }
+.print-day-name { background: var(--ink); color: #fff; text-align: center; padding: 5px; font-family: 'Cabinet Grotesk', sans-serif; font-size: .63rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.print-meals { padding: 7px; }
+.print-meal { margin-bottom: 5px; }
+.print-meal-label { font-size: .55rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--ink-3); }
+.print-meal-name { font-size: .66rem; font-weight: 600; line-height: 1.3; color: var(--ink); }
+.print-meal-p { font-size: .57rem; color: var(--fire); font-weight: 700; }
+.print-qr-section { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.print-qr-item { text-align: center; }
+.print-qr-item p { font-size: .65rem; color: var(--ink-3); margin-top: 5px; max-width: 80px; font-weight: 600; line-height: 1.3; }
+.qr-box { width: 78px; height: 78px; border: 1px solid var(--line-2); border-radius: var(--r1); display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; }
+
+/* ════════════════════════════
+   TOAST
+════════════════════════════ */
+.toast {
+  position: fixed; bottom: 28px; right: 28px;
+  background: var(--ink); color: rgba(255,255,255,.95);
+  padding: 13px 20px; border-radius: var(--r2);
+  font-size: .84rem; font-weight: 600;
+  box-shadow: var(--sh-l);
+  z-index: 9000; transform: translateY(100px) scale(.9);
+  transition: transform .32s var(--spring), opacity .2s;
+  max-width: 320px; display: flex; align-items: center; gap: 10px;
+  border-left: 3px solid var(--fire);
+  opacity: 0;
+}
+.toast.show { transform: translateY(0) scale(1); opacity: 1; }
+
+/* ════════════════════════════
+   RESPONSIVE
+════════════════════════════ */
+@media(max-width:1200px) { .week-grid { grid-template-columns: repeat(4,1fr); } }
+@media(max-width:900px) {
+  .recipes-grid { grid-template-columns: repeat(2,1fr); }
+  .prefs-grid { grid-template-columns: 1fr; }
+  .courses-list { grid-template-columns: 1fr; }
+  .recipe-sections { grid-template-columns: 1fr; }
+  .print-grid { grid-template-columns: repeat(4,1fr); }
+}
+@media(max-width:700px) {
+  .week-grid { grid-template-columns: repeat(2,1fr); }
+  header { padding: 0 16px; height: 52px; }
+  .container { padding: 16px; }
+  .tabs { padding: 0 16px; }
+  .settings-bar { padding: 12px 16px; gap: 12px; }
+  .modal-header { padding: 18px 18px 14px; }
+  .modal-body { padding: 16px 18px; }
+}
+
+@media print {
+  header, .tabs, .settings-bar, .btn, .no-print, .toast, .sync-bar { display: none!important; }
+  .print-preview { border: none; padding: 0; }
+  body { background: #fff; }
+  .section { display: block!important; }
+  .section:not(#section-print) { display: none!important; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">🍽️</div>
+      <div class="login-logo-text">Menu<span>Famille</span></div>
+    </div>
+    <p class="sub">Planifiez vos repas en famille, ensemble.</p>
+
+    <div id="login-step-code" style="display:block">
+      <label style="font-size:.78rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:8px">🏠 Code de votre famille</label>
+      <div class="family-code-row">
+        <input type="text" id="family-code-input" maxlength="6" placeholder="EX: DUPONT" oninput="this.value=this.value.toUpperCase()">
+        <button class="btn btn-primary" onclick="loadFamily()">Rejoindre →</button>
+      </div>
+      <p style="font-size:.76rem;color:var(--mid);margin-bottom:16px">Créez ou rejoignez votre espace famille. Partagez ce code avec vos proches.</p>
+      <div class="divider">ou créer une nouvelle famille</div>
+      <button class="btn btn-sage" style="width:100%;margin-top:12px;justify-content:center" onclick="createFamily()">✨ Créer mon espace famille</button>
+    </div>
+
+    <div id="login-step-member" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <label style="font-size:.78rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.6px">👋 Qui êtes-vous ?</label>
+        <span id="login-family-badge" style="background:var(--warm);border-radius:8px;padding:3px 10px;font-size:.72rem;font-weight:700;color:var(--terra)"></span>
+      </div>
+      <div id="members-list" class="members-list"></div>
+      <div class="divider">nouveau membre</div>
+      <div class="new-member-form">
+        <input type="text" id="new-member-name" placeholder="Votre prénom...">
+        <div class="avatar-picker" id="avatar-picker"></div>
+        <select id="new-member-role" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.84rem">
+          <option value="parent">👨‍👩‍👧 Parent</option>
+          <option value="enfant">👧 Enfant</option>
+          <option value="ado">🧑 Ado</option>
+          <option value="autre">👤 Autre</option>
+        </select>
+        <button class="btn btn-primary" style="justify-content:center" onclick="createMember()">+ Rejoindre la famille</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<header>
+  <div class="hdr-logo">
+    <div class="hdr-logo-icon">🍽️</div>
+    <h1>Menu<span>Famille</span></h1>
+  </div>
+  <div class="hdr-right">
+    <span class="family-badge" id="hdr-family-badge"></span>
+    <div class="current-user" id="current-user-btn" onclick="showLoginScreen()" title="Changer de membre">
+      <div class="user-av" id="hdr-user-av"></div>
+      <span class="user-name" id="hdr-user-name"></span>
+      <span style="color:rgba(255,255,255,.4);font-size:.7rem;margin-left:2px">▼</span>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="showTab('print')">🖨️</button>
+  </div>
+</header>
+
+<div class="sync-bar synced" id="sync-bar">
+  <div class="dot"></div>
+  <span id="sync-msg">Synchronisé avec la famille</span>
+  <span style="margin-left:auto;font-size:.72rem;opacity:.7" id="sync-time"></span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="menu" onclick="showTab('menu')">📅 Menu</div>
+  <div class="tab" data-tab="suggestions" onclick="showTab('suggestions')">💡 Suggestions</div>
+  <div class="tab" data-tab="courses" onclick="showTab('courses')">🛒 Courses</div>
+  <div class="tab" data-tab="recettes" onclick="showTab('recettes')">📚 Recettes</div>
+  <div class="tab" data-tab="famille" onclick="showTab('famille')">👨‍👩‍👧 Famille</div>
+  <div class="tab" data-tab="preferences" onclick="showTab('preferences')">⚙️ Préférences</div>
+  <div class="tab" data-tab="print" onclick="showTab('print')">🖨️ Impression</div>
+</div>
+
+<!-- MENU -->
+<div id="section-menu" class="section active">
+  <div class="container">
+    <div class="settings-bar">
+      <div class="sg"><label>👥 Défaut</label>
+        <select id="nb-personnes" onchange="state.nbPersonnes=+this.value;saveState()">
+          <option value="1">1 pers.</option><option value="2" selected>2 pers.</option><option value="3">3 pers.</option><option value="4">4 pers.</option><option value="5">5 pers.</option><option value="6">6 pers.</option><option value="8">8 pers.</option>
+        </select>
+      </div>
+      <div class="sg"><label>📅 Semaine</label><input type="date" id="week-start" onchange="saveState();renderWeek()"></div>
+      <div class="sg"><label>🌿</label><span class="season-badge" id="season-badge"></span></div>
+      <div class="sg" style="margin-left:auto;gap:6px">
+        <button class="btn btn-sage btn-sm" onclick="generateWeek()">✨ Générer auto</button>
+        <button class="btn btn-primary btn-sm" onclick="generateCourses()">📝 Courses</button>
+      </div>
+    </div>
+    <div class="week-grid" id="week-grid"></div>
+  </div>
+</div>
+
+<!-- SUGGESTIONS -->
+<div id="section-suggestions" class="section">
+  <div class="container">
+    <div style="background:var(--white);border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem">💡 Idées de repas de la famille</h3>
+        <button class="btn btn-blue btn-sm" onclick="openAddSuggestionModal()">+ Proposer une idée</button>
+      </div>
+      <p style="color:var(--mid);font-size:.84rem;margin-bottom:18px">Chaque membre peut proposer des idées de repas pour la semaine. Cliquez sur une idée pour l'ajouter au menu.</p>
+      <div id="suggestions-board"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COURSES -->
+<div id="section-courses" class="section">
+  <div class="container">
+    <div class="itm-banner">
+      <div><div class="itm-logo">Intermarché<span>🦁 Drive — courses de la semaine</span></div></div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn btn-white btn-sm" onclick="copyCoursesText()">📋 Copier</button>
+        <button class="btn btn-white btn-sm" onclick="openIntermarche()">🛒 Drive</button>
+      </div>
+    </div>
+    <div class="courses-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.25rem">🧺 Liste de courses</h3>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="clearChecked()">🗑️ Cochés</button>
+          <button class="btn btn-primary btn-sm" onclick="generateCourses()">🔄 Recalculer</button>
+        </div>
+      </div>
+      <div id="courses-list" class="courses-list"></div>
+      <div class="course-add-row">
+        <input type="text" id="new-course" placeholder="Ajouter un article..." onkeydown="if(event.key==='Enter')addCourse()">
+        <button class="btn btn-sage btn-sm" onclick="addCourse()">+ Ajouter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECETTES -->
+<div id="section-recettes" class="section">
+  <div class="container">
+    <div style="background:var(--white);border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.25rem">📚 Recettes de la famille</h3>
+        <button class="btn btn-blue btn-sm" onclick="openUrlModal()">📋 Ajouter via texte</button>
+        <button class="btn btn-primary btn-sm" onclick="openPhotoModal()">📷 Ajouter via photo</button>
+      </div>
+      <input type="text" id="recipe-lib-search" placeholder="Rechercher..." oninput="renderRecipeLibrary()" style="width:100%;padding:8px 13px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.86rem;margin-bottom:12px">
+      <div class="filter-chips" id="lib-chips"></div>
+      <div id="recipe-library-grid" class="recipes-grid" style="grid-template-columns:repeat(4,1fr)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FAMILLE -->
+<div id="section-famille" class="section">
+  <div class="container">
+    <div style="background:var(--white);border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.25rem;margin-bottom:16px">👨‍👩‍👧 Membres de la famille</h3>
+      <div id="famille-members-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:24px"></div>
+      <div style="background:var(--warm);border-radius:12px;padding:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:700;font-size:.9rem;margin-bottom:3px">🔗 Inviter un membre</div>
+          <div style="font-size:.8rem;color:var(--mid)">Partagez ce code pour rejoindre la famille</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="invite-code" style="font-family:monospace;font-size:1.4rem;font-weight:700;color:var(--terra);letter-spacing:3px;background:white;padding:6px 14px;border-radius:8px;border:2px solid var(--border)"></span>
+          <button class="btn btn-primary btn-sm" onclick="copyInviteCode()">📋 Copier</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRÉFÉRENCES -->
+<div id="section-preferences" class="section">
+  <div class="container">
+    <div class="prefs-grid">
+      <div class="pref-card">
+        <h3>🥗 Régimes</h3>
+        <div class="pref-item"><span>Végétarien</span><div class="toggle" onclick="togglePref(this,'vegetarien')"></div></div>
+        <div class="pref-item"><span>Vegan</span><div class="toggle" onclick="togglePref(this,'vegan')"></div></div>
+        <div class="pref-item"><span>Sans gluten</span><div class="toggle" onclick="togglePref(this,'sansGluten')"></div></div>
+        <div class="pref-item"><span>Sans lactose</span><div class="toggle" onclick="togglePref(this,'sansLactose')"></div></div>
+        <div class="pref-item"><span>Halal</span><div class="toggle" onclick="togglePref(this,'halal')"></div></div>
+      </div>
+      <div class="pref-card">
+        <h3>🚫 Allergies</h3>
+        <div class="tag-cloud" id="allergies-cloud"></div>
+        <div class="pref-add-row" style="margin-top:10px">
+          <input type="text" id="new-allergie" placeholder="Aliment à exclure..." onkeydown="if(event.key==='Enter')addAllergie()">
+          <button class="btn btn-sage btn-sm" onclick="addAllergie()">+</button>
+        </div>
+      </div>
+      <div class="pref-card">
+        <h3>🍽️ Habitudes</h3>
+        <div class="pref-item"><span>Déjeuner midi</span><div class="toggle on" onclick="togglePref(this,'lunch')"></div></div>
+        <div class="pref-item"><span>Dîner soir</span><div class="toggle on" onclick="togglePref(this,'dinner')"></div></div>
+        <div class="pref-item"><span>Petit-déjeuner</span><div class="toggle" onclick="togglePref(this,'breakfast')"></div></div>
+        <div class="pref-item"><span>Suggestions saisonnières</span><div class="toggle on" onclick="togglePref(this,'seasonal')"></div></div>
+        <div class="pref-item"><span>Rapides (&lt;30min)</span><div class="toggle" onclick="togglePref(this,'quick')"></div></div>
+        <div class="pref-item" style="border:none"><span>Magasin préféré</span></div>
+        <select id="pref-store" style="width:100%;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;margin-top:5px">
+          <option value="intermarche" selected>🦁 Intermarché</option>
+          <option value="carrefour">🛒 Carrefour</option>
+          <option value="leclerc">🟠 E.Leclerc</option>
+          <option value="lidl">🟡 Lidl</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IMPRESSION -->
+<div id="section-print" class="section">
+  <div class="container">
+    <div style="background:var(--white);border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.25rem">🖨️ Impression</h3>
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimer</button>
+      </div>
+      <p class="no-print" style="color:var(--mid);font-size:.8rem;margin-bottom:16px">QR codes pour accéder aux recettes depuis votre téléphone.</p>
+      <div id="print-preview" class="print-preview"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RECETTE -->
+<div class="overlay" id="recipe-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Choisir un repas</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- MODAL PHOTO -->
+<div class="overlay" id="photo-overlay">
+  <div class="modal" style="max-width:660px">
+    <div class="modal-header">
+      <h2>📷 Ajouter une recette via photo</h2>
+      <button class="modal-close" onclick="closePhotoModal()">✕</button>
+    </div>
+    <div class="modal-body" id="photo-modal-body"></div>
+  </div>
+</div>
+
+
+</div>
+
+
+<!-- MODAL IMPORT PAR LIEN -->
+<div class="overlay" id="url-overlay">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h2>📋 Coller une recette depuis internet</h2>
+      <button class="modal-close" onclick="closeUrlModal()">✕</button>
+    </div>
+    <div class="modal-body" id="url-modal-body"></div>
+  </div>
+</div>
+
+<!-- MODAL SUGGESTION -->
+<div class="overlay" id="sug-overlay">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <h2>💡 Proposer une idée de repas</h2>
+      <button class="modal-close" onclick="closeSugModal()">✕</button>
+    </div>
+    <div class="modal-body" id="sug-modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════ DATA ═══════════════════
+const BASE_RECIPES = [
+  {id:1,name:"Poulet rôti aux herbes",course:"plat",emoji:"🍗",time:60,difficulty:"Facile",tags:["Viande","Automne","Hiver"],season:["automne","hiver"],people:4,custom:false,addedBy:null,ingredients:[{name:"Poulet entier",qty:"1",unit:"kg"},{name:"Herbes de Provence",qty:"2",unit:"c. soupe"},{name:"Huile d'olive",qty:"3",unit:"c. soupe"},{name:"Ail",qty:"4",unit:"gousses"},{name:"Citron",qty:"1",unit:"pièce"}],steps:["Préchauffer le four à 200°C.","Mélanger huile, herbes et ail pressé.","Badigeonner le poulet.","Enfourner 1h en arrosant toutes les 15 min.","Laisser reposer 10 min avant de découper."]},
+  {id:2,name:"Quiche lorraine",course:"plat",emoji:"🥧",time:45,difficulty:"Facile",tags:["Végétarien","Toute saison"],season:["printemps","été","automne","hiver"],people:6,custom:false,addedBy:null,ingredients:[{name:"Pâte brisée",qty:"1",unit:"rouleau"},{name:"Lardons",qty:"200",unit:"g"},{name:"Crème fraîche",qty:"200",unit:"ml"},{name:"Œufs",qty:"3",unit:"pièces"},{name:"Gruyère râpé",qty:"100",unit:"g"}],steps:["Préchauffer le four à 180°C.","Foncer un moule avec la pâte brisée.","Faire revenir les lardons.","Battre les œufs avec la crème. Assaisonner.","Verser l'appareil, enfourner 35 min."]},
+  {id:3,name:"Ratatouille provençale",course:"plat",emoji:"🍲",time:50,difficulty:"Moyen",tags:["Végétarien","Été","Vegan"],season:["été"],people:4,custom:false,addedBy:null,ingredients:[{name:"Aubergines",qty:"2",unit:"pièces"},{name:"Courgettes",qty:"2",unit:"pièces"},{name:"Poivrons",qty:"2",unit:"pièces"},{name:"Tomates",qty:"4",unit:"pièces"},{name:"Oignon",qty:"1",unit:"pièce"}],steps:["Couper tous les légumes en dés.","Faire revenir oignon et ail.","Ajouter légumes progressivement.","Assaisonner et mijoter 30 min."]},
+  {id:4,name:"Saumon en papillote",course:"plat",emoji:"🐟",time:25,difficulty:"Facile",tags:["Poisson","Rapide","Toute saison"],season:["printemps","été","automne","hiver"],people:4,custom:false,addedBy:null,ingredients:[{name:"Pavés de saumon",qty:"4",unit:"pièces"},{name:"Citron",qty:"2",unit:"pièces"},{name:"Aneth",qty:"1",unit:"bouquet"},{name:"Beurre",qty:"30",unit:"g"}],steps:["Préchauffer le four à 200°C.","Placer chaque pavé sur une feuille alu.","Ajouter citron, aneth, beurre.","Fermer les papillotes et cuire 18 min."]},
+  {id:5,name:"Soupe à l'oignon",course:"entree",emoji:"🧅",time:40,difficulty:"Moyen",tags:["Végétarien","Automne","Hiver"],season:["automne","hiver"],people:4,custom:false,addedBy:null,ingredients:[{name:"Oignons",qty:"6",unit:"pièces"},{name:"Bouillon de bœuf",qty:"1",unit:"litre"},{name:"Pain de campagne",qty:"4",unit:"tranches"},{name:"Gruyère",qty:"150",unit:"g"},{name:"Beurre",qty:"40",unit:"g"}],steps:["Caraméliser les oignons 20 min.","Verser le bouillon, mijoter 15 min.","Verser dans des bols, poser pain et gruyère.","Gratiner sous le gril 5 min."]},
+  {id:6,name:"Tarte aux fraises",course:"dessert",emoji:"🍓",time:35,difficulty:"Moyen",tags:["Dessert","Printemps","Été"],season:["printemps","été"],people:6,custom:false,addedBy:null,ingredients:[{name:"Pâte sucrée",qty:"1",unit:"rouleau"},{name:"Fraises",qty:"500",unit:"g"},{name:"Crème pâtissière",qty:"300",unit:"ml"}],steps:["Cuire la pâte à blanc 15 min.","Garnir de crème pâtissière.","Disposer les fraises.","Réfrigérer 1h avant de servir."]},
+  {id:7,name:"Bœuf bourguignon",course:"plat",emoji:"🥩",time:180,difficulty:"Expert",tags:["Viande","Automne","Hiver"],season:["automne","hiver"],people:6,custom:false,addedBy:null,ingredients:[{name:"Bœuf à braiser",qty:"1.2",unit:"kg"},{name:"Vin rouge",qty:"75",unit:"cl"},{name:"Lardons",qty:"150",unit:"g"},{name:"Champignons",qty:"300",unit:"g"},{name:"Carottes",qty:"4",unit:"pièces"}],steps:["Mariner la viande dans le vin.","Faire dorer les morceaux.","Ajouter légumes, farine, vin.","Mijoter 2h30.","Ajouter champignons les 30 dernières minutes."]},
+  {id:8,name:"Salade niçoise",course:"entree",emoji:"🥗",time:20,difficulty:"Facile",tags:["Salade","Été","Rapide"],season:["printemps","été"],people:4,custom:false,addedBy:null,ingredients:[{name:"Thon en boîte",qty:"200",unit:"g"},{name:"Haricots verts",qty:"200",unit:"g"},{name:"Tomates cerise",qty:"200",unit:"g"},{name:"Œufs durs",qty:"3",unit:"pièces"},{name:"Olives noires",qty:"50",unit:"g"}],steps:["Cuire les haricots verts 8 min.","Couper tomates et œufs en quartiers.","Assembler tous les ingrédients.","Assaisonner et servir frais."]},
+  {id:9,name:"Gratin dauphinois",course:"plat",emoji:"🥔",time:80,difficulty:"Facile",tags:["Végétarien","Automne","Hiver"],season:["automne","hiver"],people:6,custom:false,addedBy:null,ingredients:[{name:"Pommes de terre",qty:"1.2",unit:"kg"},{name:"Crème fraîche",qty:"40",unit:"cl"},{name:"Lait",qty:"20",unit:"cl"},{name:"Gruyère",qty:"80",unit:"g"}],steps:["Préchauffer à 180°C.","Couper les pommes de terre en rondelles.","Alterner couches et crème.","Couvrir de gruyère. Cuire 1h."]},
+  {id:10,name:"Moules marinières",course:"plat",emoji:"🦪",time:20,difficulty:"Facile",tags:["Poisson","Été","Rapide"],season:["été","automne"],people:4,custom:false,addedBy:null,ingredients:[{name:"Moules",qty:"2",unit:"kg"},{name:"Vin blanc",qty:"20",unit:"cl"},{name:"Échalotes",qty:"3",unit:"pièces"},{name:"Beurre",qty:"40",unit:"g"},{name:"Persil",qty:"1",unit:"bouquet"}],steps:["Nettoyer les moules.","Faire revenir les échalotes.","Ajouter le vin, porter à ébullition.","Cuire les moules couvertes 5-7 min."]},
+  {id:11,name:"Risotto aux champignons",course:"plat",emoji:"🍄",time:35,difficulty:"Moyen",tags:["Végétarien","Automne"],season:["automne","hiver"],people:4,custom:false,addedBy:null,ingredients:[{name:"Riz à risotto",qty:"300",unit:"g"},{name:"Champignons",qty:"300",unit:"g"},{name:"Bouillon",qty:"1",unit:"litre"},{name:"Parmesan",qty:"80",unit:"g"},{name:"Vin blanc",qty:"10",unit:"cl"}],steps:["Chauffer le bouillon séparément.","Faire revenir oignon, nacrer le riz.","Déglacer au vin, ajouter bouillon louche par louche.","Incorporer champignons sautés et parmesan."]},
+  {id:12,name:"Crêpes bretonnes",course:"dessert",emoji:"🥞",time:30,difficulty:"Facile",tags:["Végétarien","Toute saison","Rapide"],season:["printemps","été","automne","hiver"],people:4,custom:false,addedBy:null,ingredients:[{name:"Farine de blé noir",qty:"250",unit:"g"},{name:"Œuf",qty:"1",unit:"pièce"},{name:"Lait",qty:"50",unit:"cl"},{name:"Beurre fondu",qty:"30",unit:"g"}],steps:["Mélanger farine, œuf, lait, beurre.","Laisser reposer 1h.","Cuire dans une crêpière beurrée.","Servir avec les garnitures souhaitées."]},
+];
+
+const DAYS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+const MONTHS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const SEASONS={printemps:[2,3,4],été:[5,6,7],automne:[8,9,10],hiver:[11,0,1]};
+const SEASON_EMOJI={printemps:"🌸",été:"☀️",automne:"🍂",hiver:"❄️"};
+const AVATARS=["👨","👩","👧","👦","🧑","👴","👵","🧒","🧔","👱","🧕","🧑‍🍳","👨‍🍳","👩‍🍳","🦁","🐼"];
+const MEMBER_COLORS=["#c1603c","#7a9e7e","#4a7fc1","#9b59b6","#e67e22","#2ecc71","#e74c3c","#1abc9c"];
+const CATEGORIES={"🥩 Viandes & Poissons":["poulet","bœuf","saumon","thon","moules","lardons","anchois","pavé","jambon"],"🥛 Produits laitiers":["beurre","crème","lait","parmesan","gruyère","œuf","fromage","yaourt"],"🥦 Fruits & Légumes":["tomate","aubergine","courgette","poivron","oignon","ail","champignon","carotte","pomme de terre","haricot","fraise","citron","échalote"],"🏪 Épicerie":["farine","riz","pâte","bouillon","vin","olive","gélatine","huile"],"🧂 Condiments":["herbe","thym","laurier","sel","poivre","muscade","aneth","persil","moutarde"]};
+
+// ═══════════════════ STATE ═══════════════════
+let RECIPES = [...BASE_RECIPES];
+let nextId = 200;
+
+// Famille partagée (stockée dans storage partagé)
+let family = { code:'', members:[], menu:{}, courses:[], suggestions:[], recipes:[] };
+
+// Utilisateur courant (local)
+let currentUser = null;
+let familyCode = '';
+
+let state = {
+  nbPersonnes:2, weekStart:null,
+  prefs:{vegetarien:false,vegan:false,sansGluten:false,sansLactose:false,halal:false,lunch:true,dinner:true,breakfast:false,seasonal:true,quick:false},
+  allergies:[],
+  currentModal:null, modalPersons:2,
+  photoB64:null, photoMime:null, pendingRecipe:null, photoDataUrl:null, errorMsg:'',
+  apiKey: localStorage.getItem('menuApiKey')||''
+};
+
+// ═══════════════════ STORAGE HELPERS — FIREBASE ═══════════════════
+let _unsubscribeListen = null;
+
+async function loadFamilyData() {
+  setSyncing(true);
+  // Attendre que Firebase soit prêt
+  let attempts = 0;
+  while (!window._fb && attempts < 20) {
+    await new Promise(r => setTimeout(r, 200));
+    attempts++;
+  }
+  if (!window._fb) {
+    setSyncing(false, false);
+    console.warn('Firebase non disponible, mode local');
+    family = { code: familyCode, members:[], menu:{}, courses:[], suggestions:[], recipes:[] };
+    return;
+  }
+  try {
+    const data = await window._fb.load(familyCode);
+    if (data) {
+      family = {
+        code: familyCode,
+        members: data.members||[],
+        menu: data.menu||{},
+        courses: data.courses||[],
+        suggestions: data.suggestions||[],
+        recipes: data.recipes||[]
+      };
+      RECIPES = [...BASE_RECIPES, ...family.recipes];
+      nextId = Math.max(200, ...RECIPES.map(r=>r.id), 200) + 1;
+    } else {
+      family = { code: familyCode, members:[], menu:{}, courses:[], suggestions:[], recipes:[] };
+    }
+    setSyncing(false, true);
+    // Écoute temps réel — met à jour si un autre membre modifie
+    if (_unsubscribeListen) _unsubscribeListen();
+    _unsubscribeListen = window._fb.listen(familyCode, (data) => {
+      family = {
+        code: familyCode,
+        members: data.members||[],
+        menu: data.menu||{},
+        courses: data.courses||[],
+        suggestions: data.suggestions||[],
+        recipes: data.recipes||[]
+      };
+      RECIPES = [...BASE_RECIPES, ...family.recipes];
+      nextId = Math.max(200, ...RECIPES.map(r=>r.id), 200) + 1;
+      state.menu = family.menu;
+      state.courses = family.courses;
+      renderWeek();
+      renderCourses();
+      renderSuggestionsBoard();
+      renderFamilleTab();
+      setSyncing(false, true);
+    });
+  } catch(e) {
+    setSyncing(false, false);
+    console.log('Firebase load error:', e);
+    family = { code: familyCode, members:[], menu:{}, courses:[], suggestions:[], recipes:[] };
+  }
+}
+
+async function saveFamilyData() {
+  setSyncing(true);
+  if (!window._fb) { setSyncing(false, false); return; }
+  try {
+    const data = {
+      members: family.members,
+      menu: family.menu,
+      courses: family.courses,
+      suggestions: family.suggestions,
+      recipes: family.recipes
+    };
+    await window._fb.save(familyCode, data);
+    setSyncing(false, true);
+  } catch(e) {
+    setSyncing(false, false);
+    console.log('Firebase save error:', e);
+  }
+}
+
+function setSyncing(syncing, success=false) {
+  const bar = document.getElementById('sync-bar');
+  const msg = document.getElementById('sync-msg');
+  const time = document.getElementById('sync-time');
+  if (!bar) return;
+  if (syncing) {
+    bar.classList.remove('synced');
+    msg.textContent = 'Synchronisation…';
+  } else {
+    bar.classList.add('synced');
+    msg.textContent = success ? 'Synchronisé avec la famille' : 'Hors ligne — données locales';
+    time.textContent = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  }
+}
+
+// Sync temps réel géré par Firebase onSnapshot
+
+// ═══════════════════ LOGIN ═══════════════════
+function initLogin() {
+  const picker = document.getElementById('avatar-picker');
+  picker.innerHTML = AVATARS.map((a,i) => `<div class="av-opt ${i===0?'sel':''}" onclick="selectAvatar(this,'${a}')">${a}</div>`).join('');
+}
+
+function selectAvatar(el, av) {
+  document.querySelectorAll('.av-opt').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+  el._av = av;
+}
+function getSelectedAvatar() {
+  const sel = document.querySelector('.av-opt.sel');
+  return sel ? (sel._av || sel.textContent) : '👤';
+}
+
+async function loadFamily() {
+  const code = document.getElementById('family-code-input').value.trim().toUpperCase();
+  if (!code || code.length < 2) { alert('Entrez un code famille valide (2-6 lettres)'); return; }
+  familyCode = code;
+  await loadFamilyData();
+  document.getElementById('login-family-badge').textContent = '🏠 Famille ' + code;
+  renderMembersList();
+  document.getElementById('login-step-code').style.display = 'none';
+  document.getElementById('login-step-member').style.display = 'block';
+}
+
+async function createFamily() {
+  const code = Math.random().toString(36).substring(2,8).toUpperCase();
+  document.getElementById('family-code-input').value = code;
+  await loadFamily();
+}
+
+function renderMembersList() {
+  const list = document.getElementById('members-list');
+  if (!family.members.length) { list.innerHTML = '<p style="color:var(--mid);font-size:.84rem;text-align:center;padding:12px">Aucun membre — créez le premier profil ci-dessous</p>'; return; }
+  list.innerHTML = family.members.map(m => `
+    <div class="member-btn" onclick="loginAs('${m.id}')">
+      <div class="member-avatar" style="background:${m.color}22">${m.avatar}</div>
+      <div class="member-info">
+        <div class="name">${m.name}</div>
+        <div class="role">${m.role} · ${(family.recipes||[]).filter(r=>r.addedBy===m.id).length} recettes</div>
+      </div>
+    </div>`).join('');
+}
+
+async function createMember() {
+  const name = document.getElementById('new-member-name').value.trim();
+  if (!name) { toast('✏️ Entrez votre prénom'); return; }
+  const role = document.getElementById('new-member-role').value;
+  const avatar = getSelectedAvatar();
+  const color = MEMBER_COLORS[family.members.length % MEMBER_COLORS.length];
+  const member = { id: 'm_'+Date.now(), name, avatar, role, color, joinedAt: new Date().toISOString() };
+  family.members.push(member);
+  await saveFamilyData();
+  loginAs(member.id);
+}
+
+function loginAs(memberId) {
+  const member = family.members.find(m=>m.id===memberId);
+  if (!member) return;
+  currentUser = member;
+  localStorage.setItem('menuCurrentUser', JSON.stringify({memberId, familyCode}));
+  document.getElementById('login-screen').style.display = 'none';
+  initApp();
+}
+
+function showLoginScreen() {
+  document.getElementById('login-step-code').style.display = 'block';
+  document.getElementById('login-step-member').style.display = 'none';
+  document.getElementById('family-code-input').value = familyCode;
+  document.getElementById('login-screen').style.display = 'flex';
+  renderMembersList();
+  document.getElementById('login-step-code').style.display = 'none';
+  document.getElementById('login-step-member').style.display = 'block';
+  document.getElementById('login-family-badge').textContent = '🏠 Famille ' + familyCode;
+}
+
+// ═══════════════════ INIT APP ═══════════════════
+function initApp() {
+  // Header
+  document.getElementById('hdr-user-av').textContent = currentUser.avatar;
+  document.getElementById('hdr-user-av').style.background = currentUser.color+'22';
+  document.getElementById('hdr-user-name').textContent = currentUser.name;
+  document.getElementById('hdr-family-badge').textContent = familyCode;
+  document.getElementById('invite-code').textContent = familyCode;
+
+  // Date
+  const today = new Date(), day = today.getDay(), diff = today.getDate()-day+(day===0?-6:1);
+  const monday = new Date(today); monday.setDate(diff);
+  state.weekStart = monday;
+  document.getElementById('week-start').value = monday.toISOString().split('T')[0];
+  updateSeason();
+
+  // Load shared state into local state
+  if (family.menu) state.menu = family.menu;
+  if (family.courses) state.courses = family.courses;
+
+  refreshAll();
+}
+
+function refreshAll() {
+  if (family.menu) state.menu = family.menu;
+  if (family.courses) state.courses = family.courses;
+  RECIPES = [...BASE_RECIPES, ...(family.recipes||[])];
+  renderWeek();
+  renderLibChips();
+  renderRecipeLibrary();
+  renderAllergies();
+  renderFamilleTab();
+  renderSuggestionsBoard();
+}
+
+async function saveState() {
+  family.menu = state.menu;
+  family.courses = state.courses;
+  await saveFamilyData();
+}
+
+// ═══════════════════ TABS ═══════════════════
+function showTab(tab) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('section-'+tab).classList.add('active');
+  document.querySelector(`.tab[data-tab="${tab}"]`)?.classList.add('active');
+  if(tab==='print') renderPrint();
+  if(tab==='courses') renderCourses();
+  if(tab==='recettes') renderRecipeLibrary();
+  if(tab==='famille') renderFamilleTab();
+  if(tab==='suggestions') renderSuggestionsBoard();
+}
+
+function getSeason(){const m=new Date().getMonth();for(const[s,ms]of Object.entries(SEASONS))if(ms.includes(m))return s;return 'printemps';}
+function updateSeason(){const s=getSeason();const names={printemps:'Printemps',été:'Été',automne:'Automne',hiver:'Hiver'};document.getElementById('season-badge').textContent=SEASON_EMOJI[s]+' '+names[s];}
+
+// ═══════════════════ WEEK ═══════════════════
+function renderWeek() {
+  const grid = document.getElementById('week-grid');
+  const ws = new Date(document.getElementById('week-start').value);
+  state.weekStart = ws; grid.innerHTML = '';
+  DAYS.forEach((day,i) => {
+    const date = new Date(ws); date.setDate(ws.getDate()+i);
+    const dateStr = `${date.getDate()} ${MONTHS[date.getMonth()]}`;
+    const card = document.createElement('div'); card.className='day-card';
+    const types = [];
+    if(state.prefs.breakfast) types.push({type:'breakfast',icon:'🌅',label:'Matin'});
+    if(state.prefs.lunch) types.push({type:'lunch',icon:'☀️',label:'Midi'});
+    if(state.prefs.dinner) types.push({type:'dinner',icon:'🌙',label:'Soir'});
+    const mealsHtml = types.map(mt => {
+      const slot = state.menu[i]?.[mt.type];
+      const r = slot ? RECIPES.find(x=>x.id===slot.recipeId) : null;
+      const p = slot?.persons ?? state.nbPersonnes;
+      const author = slot?.addedBy ? family.members.find(m=>m.id===slot.addedBy) : null;
+      // Collect all slots for this moment (aperitif, entree, plat, dessert)
+      const COURSE_DEFS=[{key:'aperitif',label:'🥂 Apéro'},{key:'entree',label:'🥗 Entrée'},{key:'plat',label:'🍽️ Plat'},{key:'dessert',label:'🍮 Dessert'}];
+      const slotKey=(course)=>mt.type+'_'+course;
+      const hasMainDish=COURSE_DEFS.filter(c=>c.key==='entree'||c.key==='plat').some(c=>{const s=state.menu[i]?.[slotKey(c.key)];return !!s;});
+      const coursesHtml=COURSE_DEFS.map(cd=>{
+        const sk=slotKey(cd.key);
+        const slot=state.menu[i]?.[sk];
+        const cr=slot?RECIPES.find(x=>x.id===slot.recipeId):null;
+        const cp=slot?.persons??state.nbPersonnes;
+        const cAuthor=slot?.addedBy?family.members.find(m=>m.id===slot.addedBy):null;
+        return `<div style="margin-bottom:5px">
+          <div style="font-size:.56rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">${cd.label}</div>
+          ${cr?`<button class="meal-btn filled" style="font-size:.68rem;padding:5px 6px;min-height:28px" onclick="openMealModal(${i},'${sk}')">
+            <button class="meal-remove" onclick="event.stopPropagation();removeMeal(${i},'${sk}')">×</button>
+            ${cr.emoji} ${cr.name}
+          </button>
+          <div class="meal-meta" style="margin-top:2px">
+            <span class="meal-persons-badge" style="font-size:.58rem">👥 ${cp}</span>
+            ${cAuthor?`<span class="meal-author" style="font-size:.58rem">${cAuthor.avatar}</span>`:''}
+            <div class="persons-ctrl">
+              <button onclick="changePersons(${i},'${sk}',-1)">−</button>
+              <span>${cp}</span>
+              <button onclick="changePersons(${i},'${sk}',+1)">+</button>
+            </div>
+          </div>
+          <div class="qr-mini" id="qrm-${i}-${sk}"></div>
+          `:`<button class="meal-btn" style="font-size:.66rem;min-height:26px;padding:4px 6px" onclick="openMealModal(${i},'${sk}')">+ ${cd.label}</button>`}
+        </div>`;
+      }).join('');
+      return `<div class="meal-slot">
+        <div class="meal-label">${mt.icon} ${mt.label}</div>
+        ${coursesHtml}
+        ${!hasMainDish?`<div class="missing-warn">⚠️ Entrée ou plat manquant</div>`:''}
+      </div>`;
+    }).join('');
+    card.innerHTML = `<div class="day-header"><div class="day-name">${day}</div><div class="day-date">${dateStr}</div></div><div class="day-meals">${mealsHtml}</div>`;
+    grid.appendChild(card);
+  });
+  // Mini QR codes
+  setTimeout(() => {
+    const allCourseKeys=['aperitif','entree','plat','dessert'];
+    const moments=['breakfast','lunch','dinner'];
+    DAYS.forEach((_,i) => {
+      moments.forEach(mt => {
+        allCourseKeys.forEach(c => {
+          const sk=mt+'_'+c;
+          const slot = state.menu[i]?.[sk]; if(!slot) return;
+          const el = document.getElementById(`qrm-${i}-${sk}`);
+          if(!el||el.children.length>0) return;
+          try { new QRCode(el,{text:window.location.href.split('?')[0]+'?recipe='+slot.recipeId,width:36,height:36,colorDark:'#2c2c2c',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L}); } catch(e){}
+        });
+      });
+    });
+  }, 80);
+}
+
+async function changePersons(dayIdx,mealType,delta){
+  if(!state.menu[dayIdx]?.[mealType])return;
+  const cur=state.menu[dayIdx][mealType].persons??state.nbPersonnes;
+  state.menu[dayIdx][mealType].persons=Math.max(1,Math.min(20,cur+delta));
+  renderWeek(); await saveState();
+}
+async function removeMeal(dayIdx,mealType){
+  if(state.menu[dayIdx]) delete state.menu[dayIdx][mealType];
+  renderWeek(); await saveState();
+}
+
+async function generateWeek(){
+  const season=getSeason();
+  const pool=RECIPES.filter(r=>{
+    if(state.prefs.vegetarien&&!r.tags.includes('Végétarien')&&!r.tags.includes('Vegan'))return false;
+    if(state.prefs.vegan&&!r.tags.includes('Vegan'))return false;
+    if(state.prefs.seasonal&&!r.season.includes(season))return false;
+    if(state.prefs.quick&&r.time>30)return false;
+    return true;
+  });
+  const src=pool.length>=3?pool:RECIPES;
+  const usageCount={};
+  function pick(){
+    const avail=src.filter(r=>(usageCount[r.id]||0)<2);
+    const from=avail.length>0?avail:src;
+    const r=from[Math.floor(Math.random()*from.length)];
+    usageCount[r.id]=(usageCount[r.id]||0)+1;
+    return r.id;
+  }
+  function pickByCourse(course){
+    const pool2=src.filter(r=>r.course===course||(course==='plat'&&!r.course));
+    const avail=pool2.filter(r=>(usageCount[r.id]||0)<2);
+    const from=avail.length>0?avail:pool2.length>0?pool2:src;
+    const r=from[Math.floor(Math.random()*from.length)];
+    usageCount[r.id]=(usageCount[r.id]||0)+1;
+    return r.id;
+  }
+  state.menu={};
+  for(let i=0;i<7;i++){
+    state.menu[i]={};
+    if(state.prefs.lunch){
+      state.menu[i].lunch_plat={recipeId:pickByCourse('plat'),persons:state.nbPersonnes,addedBy:currentUser?.id};
+    }
+    if(state.prefs.dinner){
+      state.menu[i].dinner_plat={recipeId:pickByCourse('plat'),persons:state.nbPersonnes,addedBy:currentUser?.id};
+    }
+  }
+  await saveState(); renderWeek(); toast('✨ Semaine générée — chaque recette max 2x !');
+}
+
+// ═══════════════════ MODAL RECETTE ═══════════════════
+let modalChip='Tous';
+function openMealModal(dayIdx,slotKey){
+  // slotKey = e.g. 'lunch_plat', 'dinner_entree'
+  state.currentModal={dayIdx,mealType:slotKey};
+  const existing=state.menu[dayIdx]?.[slotKey];
+  state.modalPersons=existing?.persons??state.nbPersonnes;
+  const parts=slotKey.split('_');
+  const momentName={lunch:'Déjeuner',dinner:'Dîner',breakfast:'Matin'}[parts[0]]||parts[0];
+  const courseName={aperitif:'Apéritif',entree:'Entrée',plat:'Plat',dessert:'Dessert'}[parts[1]]||parts[1];
+  document.getElementById('modal-title').textContent=DAYS[dayIdx]+' — '+momentName+' · '+courseName;
+  // Pre-filter modal to the course type
+  modalChip=courseName==='Apéritif'?'🥂 Apéritif':courseName==='Entrée'?'🥗 Entrée':courseName==='Dessert'?'🍮 Dessert':'🍽️ Plat';
+  renderModalContent();
+  document.getElementById('recipe-overlay').classList.add('open');
+}
+function closeModal(){document.getElementById('recipe-overlay').classList.remove('open');state.currentModal=null;}
+
+function renderModalContent(){
+  const body=document.getElementById('modal-body');
+  const cats=['Tous','🥂 Apéritif','🥗 Entrée','🍽️ Plat','🍮 Dessert','Viande','Poisson','Végétarien','Rapide','Saison','Ma famille'];
+  body.innerHTML=`
+    <div class="persons-selector">
+      <label>👥 Personnes pour ce repas :</label>
+      <div class="persons-stepper">
+        <button onclick="state.modalPersons=Math.max(1,state.modalPersons-1);document.getElementById('mpv').textContent=state.modalPersons">−</button>
+        <span id="mpv">${state.modalPersons}</span>
+        <button onclick="state.modalPersons=Math.min(20,state.modalPersons+1);document.getElementById('mpv').textContent=state.modalPersons">+</button>
+      </div>
+    </div>
+    <div class="recipe-search-bar"><input type="text" id="msearch" placeholder="Rechercher..." oninput="renderModalGrid()"></div>
+    <div class="filter-chips" id="mchips">
+      ${cats.map(c=>`<button class="chip ${c===modalChip?'active':''}" onclick="modalChip='${c}';document.querySelectorAll('#mchips .chip').forEach(x=>x.classList.remove('active'));this.classList.add('active');renderModalGrid()">${c}</button>`).join('')}
+    </div>
+    <div id="mgrid" class="recipes-grid"></div>
+    <div id="mdetail" class="recipe-detail"></div>`;
+  renderModalGrid();
+}
+
+function renderModalGrid(){
+  const search=(document.getElementById('msearch')?.value||'').toLowerCase();
+  const season=getSeason();
+  let list=RECIPES.filter(r=>{
+    if(search&&!r.name.toLowerCase().includes(search))return false;
+    if(modalChip.includes('Apéritif')&&r.course!=='aperitif')return false;
+    if(modalChip.includes('Entrée')&&r.course!=='entree')return false;
+    if(modalChip.includes('Plat')&&r.course!=='plat'&&!(!r.course))return false;
+    if(modalChip.includes('Dessert')&&r.course!=='dessert')return false;
+    if(modalChip==='Viande'&&!r.tags.includes('Viande'))return false;
+    if(modalChip==='Poisson'&&!r.tags.includes('Poisson'))return false;
+    if(modalChip==='Végétarien'&&!r.tags.includes('Végétarien')&&!r.tags.includes('Vegan'))return false;
+    if(modalChip==='Rapide'&&r.time>30)return false;
+    if(modalChip==='Saison'&&!r.season.includes(season))return false;
+    if(modalChip==='Ma famille'&&!r.custom)return false;
+    return true;
+  });
+  const g=document.getElementById('mgrid');const d=document.getElementById('mdetail');
+  if(!g)return;
+  d.classList.remove('open');g.style.display='grid';
+  const cur=state.currentModal?state.menu[state.currentModal.dayIdx]?.[state.currentModal.mealType]?.recipeId:null;
+  g.innerHTML=list.map(r=>{
+    const author=r.addedBy?family.members.find(m=>m.id===r.addedBy):null;
+    return `<div class="recipe-card ${cur===r.id?'selected':''}" onclick="showModalDetail(${r.id})">
+      ${author?`<div class="recipe-author">${author.avatar} ${author.name}</div>`:''}
+      <div class="recipe-emoji">${r.emoji}</div>
+      <div class="recipe-info">
+        <div class="recipe-name">${r.name}</div>
+        <div class="recipe-meta">⏱ ${r.time}min
+          ${r.season.includes(getSeason())?`<span class="recipe-tag saison">🌿</span>`:''}
+          ${r.custom?`<span class="recipe-tag family">👨‍👩‍👧</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('')||'<p style="color:var(--mid);grid-column:1/-1;text-align:center;padding:24px">Aucune recette trouvée</p>';
+}
+
+function showModalDetail(recipeId){
+  const r=RECIPES.find(x=>x.id===recipeId);if(!r)return;
+  const g=document.getElementById('mgrid');const d=document.getElementById('mdetail');
+  g.style.display='none';d.classList.add('open');
+  const p=state.modalPersons;const ratio=p/(r.people||4);
+  const author=r.addedBy?family.members.find(m=>m.id===r.addedBy):null;
+  d.innerHTML=`
+    <button class="back-btn" onclick="renderModalGrid()">← Retour</button>
+    <div class="recipe-detail-header">
+      <div class="recipe-detail-emoji">${r.emoji}</div>
+      <div class="recipe-detail-meta">
+        <h3>${r.name}</h3>
+        <div class="detail-tags">${r.tags.map(t=>`<span class="recipe-tag">${t}</span>`).join('')}${r.season.includes(getSeason())?`<span class="recipe-tag saison">🌿 De saison</span>`:''}${author?`<span class="recipe-tag family">${author.avatar} ${author.name}</span>`:''}</div>
+        <div class="detail-stats">
+          <div class="stat"><div class="stat-val">⏱ ${r.time}</div><div class="stat-key">min</div></div>
+          <div class="stat"><div class="stat-val">👥 ${p}</div><div class="stat-key">pers.</div></div>
+          <div class="stat"><div class="stat-val">${r.difficulty}</div><div class="stat-key">niveau</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="recipe-sections">
+      <div>
+        <div class="rsection-title">🧄 Ingrédients (${p} pers.)</div>
+        <ul class="ingredient-list">${r.ingredients.map(ing=>`<li><span>${ing.name}</span><span class="ingredient-qty">${ing.qty?(isNaN(+ing.qty)?ing.qty:Math.round(+ing.qty*ratio*10)/10)+' '+ing.unit:''}</span></li>`).join('')}</ul>
+      </div>
+      <div>
+        <div class="rsection-title">👨‍🍳 Préparation</div>
+        <ol class="steps-list">${r.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+      </div>
+    </div>
+    ${state.currentModal?`<button class="btn btn-primary" style="margin-top:12px;width:100%" onclick="selectRecipe(${r.id})">✓ Ajouter au menu — ${p} personnes</button>`:''}`;
+}
+
+async function selectRecipe(recipeId){
+  if(!state.currentModal)return;
+  const{dayIdx,mealType}=state.currentModal;
+  if(!state.menu[dayIdx])state.menu[dayIdx]={};
+  state.menu[dayIdx][mealType]={recipeId,persons:state.modalPersons,addedBy:currentUser?.id};
+  closeModal(); renderWeek(); await saveState(); toast('✅ Recette ajoutée par '+currentUser?.name+'!');
+}
+
+// ═══════════════════ SUGGESTIONS ═══════════════════
+function renderSuggestionsBoard(){
+  const board = document.getElementById('suggestions-board');
+  if (!board) return;
+  const sugs = family.suggestions || [];
+  if (!sugs.length) {
+    board.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--mid)"><div style="font-size:3rem;margin-bottom:12px">💭</div><h4 style="font-family:'Playfair Display',serif;margin-bottom:6px">Aucune idée pour l'instant</h4><p style="font-size:.84rem">Soyez le premier à proposer un repas !</p></div>`;
+    return;
+  }
+  // Group by member
+  const byMember = {};
+  sugs.forEach(s => {
+    if (!byMember[s.memberId]) byMember[s.memberId] = [];
+    byMember[s.memberId].push(s);
+  });
+  board.innerHTML = Object.entries(byMember).map(([mid, items]) => {
+    const member = family.members.find(m=>m.id===mid);
+    if (!member) return '';
+    const isMe = mid === currentUser?.id;
+    return `<div style="margin-bottom:22px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:32px;height:32px;border-radius:50%;background:${member.color}22;display:flex;align-items:center;justify-content:center;font-size:1.1rem">${member.avatar}</div>
+        <span style="font-weight:700;font-size:.92rem">${member.name}</span>
+        <span style="font-size:.76rem;color:var(--mid)">${items.length} idée${items.length>1?'s':''}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${items.map(s => {
+          const r = RECIPES.find(x=>x.id===s.recipeId);
+          if (!r) return '';
+          return `<div class="suggestion-chip" onclick="addSuggestionToMenu(${s.recipeId})">
+            <div class="sug-av" style="background:${member.color}22">${member.avatar}</div>
+            <div>
+              <div class="sug-name">${r.emoji} ${r.name}</div>
+              <div class="sug-sub">⏱ ${r.time}min · Cliquer pour placer</div>
+            </div>
+            ${isMe?`<span class="sug-remove" onclick="event.stopPropagation();removeSuggestion('${s.id}')">×</span>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('') || `<div style="text-align:center;padding:40px 20px;color:var(--mid)">Aucune idée pour l'instant.</div>`;
+}
+
+function openAddSuggestionModal(){
+  const body = document.getElementById('sug-modal-body');
+  const cats=['Tous','🥂 Apéritif','🥗 Entrée','🍽️ Plat','🍮 Dessert','Viande','Poisson','Végétarien','Rapide','Saison','Ma famille'];
+  body.innerHTML = `
+    <p style="color:var(--mid);font-size:.84rem;margin-bottom:14px">Choisissez une recette à proposer à votre famille pour la semaine prochaine.</p>
+    <div class="recipe-search-bar"><input type="text" id="sugsearch" placeholder="Rechercher..." oninput="renderSugGrid()"></div>
+    <div class="filter-chips" id="sugchips">
+      ${cats.map((c,i)=>`<button class="chip ${i===0?'active':''}" onclick="this.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));this.classList.add('active');renderSugGrid()">${c}</button>`).join('')}
+    </div>
+    <div id="suggrid" class="recipes-grid"></div>`;
+  renderSugGrid();
+  document.getElementById('sug-overlay').classList.add('open');
+}
+function closeSugModal(){ document.getElementById('sug-overlay').classList.remove('open'); }
+
+function renderSugGrid(){
+  const search=(document.getElementById('sugsearch')?.value||'').toLowerCase();
+  const chip=document.querySelector('#sugchips .chip.active')?.textContent||'Tous';
+  const season=getSeason();
+  let list=RECIPES.filter(r=>{
+    if(search&&!r.name.toLowerCase().includes(search))return false;
+    if(chip==='Viande'&&!r.tags.includes('Viande'))return false;
+    if(chip==='Poisson'&&!r.tags.includes('Poisson'))return false;
+    if(chip==='Végétarien'&&!r.tags.includes('Végétarien')&&!r.tags.includes('Vegan'))return false;
+    if(chip==='Rapide'&&r.time>30)return false;
+    if(chip==='Saison'&&!r.season.includes(season))return false;
+    if(chip==='Ma famille'&&!r.custom)return false;
+    return true;
+  });
+  const g=document.getElementById('suggrid'); if(!g)return;
+  // Already suggested by me
+  const mySugs = (family.suggestions||[]).filter(s=>s.memberId===currentUser?.id).map(s=>s.recipeId);
+  g.innerHTML=list.map(r=>`
+    <div class="recipe-card ${mySugs.includes(r.id)?'selected':''}" onclick="addSuggestion(${r.id})">
+      <div class="recipe-emoji">${r.emoji}</div>
+      <div class="recipe-info">
+        <div class="recipe-name">${r.name}</div>
+        <div class="recipe-meta">⏱ ${r.time}min ${mySugs.includes(r.id)?'<span class="recipe-tag family">✓ Proposé</span>':''}</div>
+      </div>
+    </div>`).join('')||'<p style="color:var(--mid);grid-column:1/-1;text-align:center;padding:20px">Aucune recette</p>';
+}
+
+async function addSuggestion(recipeId){
+  if (!currentUser) return;
+  const existing = (family.suggestions||[]).find(s=>s.memberId===currentUser.id&&s.recipeId===recipeId);
+  if (existing) { toast('💡 Déjà proposé !'); return; }
+  if (!family.suggestions) family.suggestions = [];
+  family.suggestions.push({ id:'s_'+Date.now(), memberId:currentUser.id, recipeId, createdAt:new Date().toISOString() });
+  await saveFamilyData();
+  renderSugGrid(); renderSuggestionsBoard();
+  const r = RECIPES.find(x=>x.id===recipeId);
+  toast('💡 "'+r?.name+'" proposé à la famille !');
+}
+
+async function removeSuggestion(sugId){
+  family.suggestions = (family.suggestions||[]).filter(s=>s.id!==sugId);
+  await saveFamilyData(); renderSuggestionsBoard();
+}
+
+function addSuggestionToMenu(recipeId){
+  // Open week grid with the recipe pre-selected
+  showTab('menu');
+  state.currentModal = null;
+  toast('📅 Cliquez sur un créneau du menu pour placer cette recette');
+  // Temporarily highlight the recipe
+  state._pendingSuggestion = recipeId;
+  setTimeout(()=>{ state._pendingSuggestion=null; },10000);
+}
+
+// ═══════════════════ FAMILLE TAB ═══════════════════
+function renderFamilleTab(){
+  const grid = document.getElementById('famille-members-grid'); if(!grid) return;
+  grid.innerHTML = family.members.map(m => {
+    const recipeCount = (family.recipes||[]).filter(r=>r.addedBy===m.id).length;
+    const mealCount = Object.values(family.menu||{}).reduce((acc,day)=>acc+Object.values(day).filter(s=>s&&s.addedBy===m.id).length,0);
+    const isMe = m.id === currentUser?.id;
+    return `<div style="background:var(--paper);border-radius:var(--r3);padding:18px;box-shadow:var(--sh-s);border:2px solid ${isMe?'var(--fire)':'var(--line)'}">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:50px;height:50px;border-radius:50%;background:${m.color}22;display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex-shrink:0">${m.avatar}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:.95rem;font-family:'Cabinet Grotesk',sans-serif">${m.name}${isMe?' <span style="font-size:.7rem;background:var(--fire-pale);color:var(--fire);border-radius:4px;padding:1px 7px;font-weight:700">Moi</span>':''}</div>
+          <div style="font-size:.75rem;color:var(--ink-3);margin-top:2px">${m.role}</div>
+        </div>
+        ${!isMe?`<button class="member-del-btn" onclick="confirmDeleteMember('${m.id}','${m.name}')" title="Supprimer ce membre">🗑️</button>`:''}
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;background:var(--fire-pale);border-radius:var(--r1);padding:9px;text-align:center;border:1px solid rgba(217,79,30,.12)">
+          <div style="font-weight:800;font-size:1.15rem;color:var(--fire);font-family:'Cabinet Grotesk',sans-serif">${recipeCount}</div>
+          <div style="font-size:.68rem;color:var(--ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:1px">recettes</div>
+        </div>
+        <div style="flex:1;background:var(--herb-pale);border-radius:var(--r1);padding:9px;text-align:center;border:1px solid rgba(61,122,74,.12)">
+          <div style="font-weight:800;font-size:1.15rem;color:var(--herb);font-family:'Cabinet Grotesk',sans-serif">${mealCount}</div>
+          <div style="font-size:.68rem;color:var(--ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:1px">repas</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:var(--mid);font-size:.84rem">Aucun membre</p>';
+}
+
+async function confirmDeleteMember(memberId, memberName){
+  if(!confirm('Supprimer "'+memberName+'" de la famille ? Ses recettes resteront dans la bibliothèque.')) return;
+  family.members = family.members.filter(m=>m.id!==memberId);
+  await saveFamilyData();
+  renderFamilleTab();
+  toast('🗑️ '+memberName+' retiré de la famille');
+}
+
+function copyInviteCode(){
+  navigator.clipboard.writeText(familyCode).then(()=>toast('📋 Code "'+familyCode+'" copié !'));
+}
+
+// ═══════════════════ LIBRARY ═══════════════════
+function renderLibChips(){
+  const cats=['Tous','🥂 Apéritif','🥗 Entrée','🍽️ Plat','🍮 Dessert','Viande','Poisson','Végétarien','Rapide','Saison','👨‍👩‍👧 Famille'];
+  document.getElementById('lib-chips').innerHTML=cats.map((c,i)=>`<button class="chip ${i===0?'active':''}" onclick="this.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));this.classList.add('active');renderRecipeLibrary()">${c}</button>`).join('');
+}
+
+function renderRecipeLibrary(){
+  const search=(document.getElementById('recipe-lib-search')?.value||'').toLowerCase();
+  const chip=document.querySelector('#lib-chips .chip.active')?.textContent||'Tous';
+  const season=getSeason();
+  let list=RECIPES.filter(r=>{
+    if(search&&!r.name.toLowerCase().includes(search))return false;
+    if(chip.includes('Apéritif')&&r.course!=='aperitif')return false;
+    if(chip.includes('Entrée')&&r.course!=='entree')return false;
+    if(chip.includes('Plat')&&r.course!=='plat'&&!(!r.course))return false;
+    if(chip.includes('Dessert')&&r.course!=='dessert')return false;
+    if(chip==='Viande'&&!r.tags.includes('Viande'))return false;
+    if(chip==='Poisson'&&!r.tags.includes('Poisson'))return false;
+    if(chip==='Végétarien'&&!r.tags.includes('Végétarien')&&!r.tags.includes('Vegan'))return false;
+    if(chip==='Rapide'&&r.time>30)return false;
+    if(chip==='Saison'&&!r.season.includes(season))return false;
+    if(chip.includes('Famille')&&!r.custom)return false;
+    return true;
+  });
+  const g=document.getElementById('recipe-library-grid'); if(!g)return;
+  g.innerHTML=list.map(r=>{
+    const author=r.addedBy?family.members.find(m=>m.id===r.addedBy):null;
+    const COURSE_BADGES={aperitif:'🥂 Apéritif',entree:'🥗 Entrée',plat:'🍽️ Plat',dessert:'🍮 Dessert'};
+    const courseBadge=COURSE_BADGES[r.course]||'🍽️ Plat';
+    return `<div class="recipe-card" onclick="openLibDetail(${r.id})">
+      ${author?`<div class="recipe-author">${author.avatar} ${author.name}</div>`:''}
+      <div class="recipe-emoji">${r.emoji}</div>
+      <div class="recipe-info">
+        <div style="font-size:.62rem;font-weight:700;color:var(--mid);margin-bottom:2px">${courseBadge}</div>
+        <div class="recipe-name">${r.name}</div>
+        <div class="recipe-meta">⏱ ${r.time}min · ${r.difficulty}
+          ${r.season.includes(season)?`<span class="recipe-tag saison">🌿</span>`:''}
+          ${r.custom?`<span class="recipe-tag family">👨‍👩‍👧</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('')||`<div style="grid-column:1/-1;text-align:center;padding:44px;color:var(--mid)"><div style="font-size:3rem;margin-bottom:10px">🔍</div><h4 style="font-family:'Playfair Display',serif;margin-bottom:5px">Aucune recette</h4><p style="font-size:.82rem">Ajoutez des recettes via photo !</p></div>`;
+}
+
+function openLibDetail(recipeId){
+  state.currentModal=null;
+  document.getElementById('modal-title').textContent='Détail recette';
+  document.getElementById('modal-body').innerHTML=`<div id="mgrid" class="recipes-grid" style="display:none"></div><div id="mdetail" class="recipe-detail open"></div>`;
+  document.getElementById('recipe-overlay').classList.add('open');
+  state.modalPersons=state.nbPersonnes;
+  showModalDetail(recipeId);
+}
+
+// ═══════════════════ COURSES ═══════════════════
+function normalizeIngName(n){return n.toLowerCase().trim().replace(/s$/,'').replace(/[àâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/[ùûü]/g,'u').replace(/ç/g,'c');}
+
+async function generateCourses(){
+  const all={};
+  Object.entries(state.menu).forEach(([,day])=>{
+    Object.entries(day).filter(([k,])=>k.includes('_')).forEach(([,slot])=>{
+      const r=RECIPES.find(x=>x.id===slot.recipeId);if(!r)return;
+      const ratio=(slot.persons||state.nbPersonnes)/(r.people||4);
+      r.ingredients.forEach(ing=>{
+        if(!ing.qty)return;
+        const normKey=normalizeIngName(ing.name);
+        const unit=(ing.unit||'').trim();
+        const mapKey=normKey+(unit?'_'+unit:'');
+        if(!all[mapKey])all[mapKey]={name:ing.name,qty:0,unit,category:getCategory(ing.name)};
+        const n=parseFloat(ing.qty);
+        if(!isNaN(n))all[mapKey].qty+=n*ratio;
+      });
+    });
+  });
+  const autoItems = Object.values(all).map(ing=>({name:ing.name,qty:ing.unit&&!isNaN(ing.qty)&&ing.qty>0?Math.ceil(ing.qty*10)/10:'',unit:ing.unit||'',category:ing.category,checked:false})).sort((a,b)=>a.category.localeCompare(b.category)||a.name.localeCompare(b.name));
+  const manual = (family.courses||[]).filter(c=>c.manual);
+  state.courses=[...autoItems,...manual];
+  family.courses=state.courses;
+  await saveFamilyData();
+  renderCourses(); showTab('courses'); toast('🛒 Courses calculées et partagées avec la famille !');
+}
+
+function getCategory(name){const n=name.toLowerCase();for(const[cat,items]of Object.entries(CATEGORIES))if(items.some(i=>n.includes(i)))return cat;return '🏪 Épicerie';}
+
+function renderCourses(){
+  const list=document.getElementById('courses-list');if(!list)return;
+  if(!state.courses.length){list.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:36px;color:var(--mid)">Aucun article. Cliquez sur "Recalculer".</div>';return;}
+  const byCat={};
+  state.courses.forEach(item=>{if(!byCat[item.category])byCat[item.category]=[];byCat[item.category].push(item);});
+  list.innerHTML=Object.entries(byCat).map(([cat,items])=>`
+    <div class="cat-section"><h4>${cat}</h4>
+      ${items.map(item=>{
+        const idx=state.courses.indexOf(item);
+        return `<div class="course-item">
+          <input type="checkbox" id="ci${idx}" ${item.checked?'checked':''} onchange="state.courses[${idx}].checked=this.checked;family.courses=state.courses;saveFamilyData();document.getElementById('lbl${idx}').className=this.checked?'chk':''">
+          <label id="lbl${idx}" for="ci${idx}" class="${item.checked?'chk':''}">${item.name}</label>
+          <span class="course-qty">${item.qty?item.qty+' '+item.unit:''}</span>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+async function clearChecked(){state.courses=state.courses.filter(c=>!c.checked);family.courses=state.courses;await saveFamilyData();renderCourses();}
+async function addCourse(){const el=document.getElementById('new-course');const v=el.value.trim();if(!v)return;const item={name:v,qty:'',unit:'',category:getCategory(v),checked:false,manual:true};state.courses.push(item);family.courses=state.courses;el.value='';await saveFamilyData();renderCourses();}
+function copyCoursesText(){navigator.clipboard.writeText(state.courses.filter(c=>!c.checked).map(c=>`- ${c.name}${c.qty?' ('+c.qty+' '+c.unit+')':''}`).join('\n')).then(()=>toast('📋 Liste copiée !'));}
+function openIntermarche(){toast('🦁 Ouverture Drive Intermarché…');window.open('https://www.intermarche.com/drive','_blank');}
+
+// ═══════════════════ PHOTO IMPORT ═══════════════════
+function openPhotoModal(){state.photoB64=null;state.photoMime=null;state.pendingRecipe=null;state.photoDataUrl=null;stopCamera();renderPhotoStep('upload');document.getElementById('photo-overlay').classList.add('open');}
+function closePhotoModal(){stopCamera();document.getElementById('photo-overlay').classList.remove('open');}
+function saveApiKey(){const v=document.getElementById('api-key-input')?.value.trim();if(!v||!v.startsWith('sk-')){toast('⚠️ Clé invalide');return;}state.apiKey=v;try{localStorage.setItem('menuApiKey',v);}catch(e){}renderPhotoStep('upload');toast('🔑 Clé enregistrée !');}
+
+let cameraStream=null;
+function stopCamera(){if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}}
+async function startCamera(){
+  const body=document.getElementById('photo-modal-body');
+  body.innerHTML=`<div style="position:relative;background:#000;border-radius:12px;overflow:hidden;margin-bottom:12px"><video id="cam-video" autoplay playsinline muted style="width:100%;display:block;max-height:300px;object-fit:cover"></video><div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%)"><button onclick="capturePhoto()" style="width:60px;height:60px;border-radius:50%;background:white;border:4px solid rgba(255,255,255,.5);cursor:pointer;font-size:1.6rem;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.5)">📸</button></div><button onclick="stopCamera();renderPhotoStep('upload')" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);color:white;border:none;border-radius:16px;padding:4px 12px;cursor:pointer;font-size:.78rem;font-family:'DM Sans',sans-serif">✕</button></div><p style="text-align:center;color:var(--mid);font-size:.8rem">Cadrez la recette et appuyez sur 📸</p>`;
+  try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});document.getElementById('cam-video').srcObject=cameraStream;}
+  catch(err){body.innerHTML=`<div style="text-align:center;padding:28px"><div style="font-size:2.5rem;margin-bottom:10px">📵</div><h4 style="font-family:'Playfair Display',serif;margin-bottom:8px">Caméra inaccessible</h4><p style="color:var(--mid);font-size:.82rem;margin-bottom:14px">${err.name==='NotAllowedError'?'Autorisez la caméra dans les paramètres du navigateur.':'Caméra non disponible.'}</p><button class="btn btn-primary" onclick="renderPhotoStep('upload')">↩ Retour</button></div>`;}
+}
+function capturePhoto(){const video=document.getElementById('cam-video');if(!video)return;const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);stopCamera();const dataUrl=canvas.toDataURL('image/jpeg',.92);state.photoDataUrl=dataUrl;state.photoB64=dataUrl.split(',')[1];state.photoMime='image/jpeg';renderPhotoStep('analyzing');analyzePhoto();}
+
+function renderPhotoStep(step){
+  const body=document.getElementById('photo-modal-body');
+  if(step==='upload'){
+    const hasKey=!!(state.apiKey);
+    body.innerHTML=`
+      ${!hasKey?`<div style="background:linear-gradient(135deg,#fdf0eb,#f5e6d8);border-radius:11px;padding:14px 16px;margin-bottom:16px;border-left:4px solid var(--terra)"><div style="font-size:.78rem;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px">🔑 Clé API Anthropic requise</div><p style="font-size:.8rem;color:var(--mid);margin-bottom:9px">Obtenez-la gratuitement sur <a href="https://console.anthropic.com" target="_blank" style="color:var(--terra);font-weight:600">console.anthropic.com</a></p><div style="display:flex;gap:7px"><input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="flex:1;padding:7px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem" onkeydown="if(event.key==='Enter')saveApiKey()"><button class="btn btn-primary btn-sm" onclick="saveApiKey()">Enregistrer</button></div></div>`:`<div style="background:#f0f7f1;border-radius:9px;padding:9px 13px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:.8rem;color:#3d6e42;font-weight:600">✅ Clé API configurée</span><button onclick="state.apiKey='';try{localStorage.removeItem('menuApiKey')}catch(e){}renderPhotoStep('upload')" style="font-size:.72rem;color:var(--mid);background:none;border:none;cursor:pointer;text-decoration:underline">Changer</button></div>`}
+      <p style="color:var(--mid);font-size:.82rem;margin-bottom:13px">Photographiez ou importez une fiche recette. Elle sera partagée avec toute la famille.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px">
+        <button onclick="startCamera()" style="padding:18px 14px;border-radius:12px;border:2px solid var(--terra);background:var(--terra);color:white;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.86rem;display:flex;flex-direction:column;align-items:center;gap:7px;transition:all .2s">
+          <span style="font-size:2rem">📷</span>Prendre une photo
+        </button>
+        <div style="border:2px dashed var(--border);border-radius:12px;background:var(--cream);position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:18px 14px;transition:all .2s" onmouseover="this.style.borderColor='var(--terra)'" onmouseout="this.style.borderColor='var(--border)'">
+          <input type="file" accept="image/*" onchange="handlePhoto(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+          <span style="font-size:2rem">🖼️</span>
+          <div style="font-size:.86rem;font-weight:600">Importer</div>
+        </div>
+      </div>
+      <p style="text-align:center;color:var(--mid);font-size:.74rem">🤖 Claude Vision — la recette sera partagée avec ${currentUser?.name?'la famille':'votre famille'}</p>`;
+  } else if(step==='analyzing'){
+    body.innerHTML=`<img src="${state.photoDataUrl}" class="photo-preview"><div class="ai-analyzing"><div class="spinner"></div><h4 style="font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:5px">Analyse en cours…</h4><p style="color:var(--mid);font-size:.82rem">L'IA extrait les ingrédients et les étapes</p></div>`;
+  } else if(step==='result'){
+    const r=state.pendingRecipe||{};
+    body.innerHTML=`
+      <img src="${state.photoDataUrl}" class="photo-preview" style="max-height:140px">
+      <div class="ai-result">
+        <h4>✅ Recette extraite — vérifiez et ajustez</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+          <div class="field"><label>Nom</label><input id="pr-name" value="${r.name}"></div>
+          <div class="field"><label>Emoji</label><input id="pr-emoji" value="${r.emoji}" style="max-width:70px"></div>
+          <div class="field"><label>⏱ Temps (min)</label><input id="pr-time" type="number" value="${r.time}"></div>
+          <div class="field"><label>Difficulté</label><select id="pr-diff"><option ${r.difficulty==='Facile'?'selected':''}>Facile</option><option ${r.difficulty==='Moyen'?'selected':''}>Moyen</option><option ${r.difficulty==='Expert'?'selected':''}>Expert</option></select></div>
+          <div class="field"><label>Personnes</label><input id="pr-people" type="number" value="${r.people}"></div>
+          <div class="field"><label>Catégorie</label><select id="pr-course"><option value="plat" ${r.course==='plat'||!r.course?'selected':''}>🍽️ Plat</option><option value="entree" ${r.course==='entree'?'selected':''}>🥗 Entrée</option><option value="aperitif" ${r.course==='aperitif'?'selected':''}>🥂 Apéritif</option><option value="dessert" ${r.course==='dessert'?'selected':''}>🍮 Dessert</option></select></div>
+          <div class="field"><label>Saison</label><select id="pr-season"><option value="printemps,été,automne,hiver">Toute saison</option><option value="printemps,été">Printemps/Été</option><option value="automne,hiver">Automne/Hiver</option><option value="printemps">Printemps</option><option value="été">Été</option><option value="automne">Automne</option><option value="hiver">Hiver</option></select></div>
+        </div>
+        <div class="field" style="margin-top:7px">
+          <label>🧄 Ingrédients (nom | qté | unité)</label>
+          <div id="ing-editor">${r.ingredients.map((ing,i)=>`<div class="ing-row" id="ing-${i}"><input placeholder="Nom" value="${ing.name}" style="flex:2"><input placeholder="Qté" value="${ing.qty||''}" style="max-width:65px"><input placeholder="Unité" value="${ing.unit||''}" style="max-width:75px"><button class="del-btn" onclick="this.parentElement.remove()">×</button></div>`).join('')}</div>
+          <button class="btn btn-ghost btn-xs" style="margin-top:6px" onclick="addIngRow()">+ Ingrédient</button>
+        </div>
+        <div class="field"><label>👨‍🍳 Étapes (une par ligne)</label><textarea id="pr-steps">${r.steps.join('\n')}</textarea></div>
+        <div style="display:flex;gap:9px;margin-top:13px">
+          <button class="btn btn-ghost" onclick="renderPhotoStep('upload')">↩ Recommencer</button>
+          <button class="btn btn-primary" style="flex:1" onclick="savePhotoRecipe()">💾 Partager avec la famille</button>
+        </div>
+      </div>`;
+    setTimeout(()=>{const sel=document.getElementById('pr-season');if(!sel)return;const val=r.season.join(',');for(const o of sel.options)if(o.value===val){o.selected=true;break;}},50);
+  } else if(step==='error'){
+    body.innerHTML=`<div style="text-align:center;padding:28px"><div style="font-size:2.5rem;margin-bottom:10px">⚠️</div><h4 style="font-family:'Playfair Display',serif;margin-bottom:7px">Impossible d'analyser</h4><p style="color:var(--mid);font-size:.82rem;margin-bottom:16px">${state.errorMsg||"Vérifiez que la photo contient une recette lisible."}</p><button class="btn btn-primary" onclick="renderPhotoStep('upload')">↩ Réessayer</button></div>`;
+  }
+}
+
+function handlePhoto(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{state.photoDataUrl=ev.target.result;state.photoB64=ev.target.result.split(',')[1];state.photoMime=file.type||'image/jpeg';renderPhotoStep('analyzing');analyzePhoto();};reader.readAsDataURL(file);}
+
+async function analyzePhoto(){
+  const apiKey=state.apiKey||'';
+  if(!apiKey){state.errorMsg="Configurez d'abord votre clé API.";renderPhotoStep('error');return;}
+  try{
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:state.photoMime,data:state.photoB64}},{type:"text",text:'Tu es un assistant culinaire. Analyse cette image et extrais la recette. Reponds UNIQUEMENT avec un objet JSON valide sans backticks. Proprietes: name,emoji(1 emoji),time(number),difficulty(Facile/Moyen/Expert),people(number),season(array),tags(array),course("aperitif","entree","plat" ou "dessert"),ingredients(array of {name,qty,unit}),steps(array). Si pas de recette: {"error":"Pas de recette"}'}]}]})});
+    const data=await resp.json();
+    if(data.error){state.errorMsg='Erreur API: '+data.error.message;renderPhotoStep('error');return;}
+    const text=(data.content||[]).map(c=>c.text||'').join('').trim();
+    let parsed;try{parsed=JSON.parse(text);}catch{const m=text.match(/\{[\s\S]*\}/);if(m)parsed=JSON.parse(m[0]);else throw new Error("JSON invalide");}
+    if(parsed.error){state.errorMsg=parsed.error;renderPhotoStep('error');return;}
+    state.pendingRecipe={name:parsed.name||'Recette',emoji:parsed.emoji||'🍽️',time:+parsed.time||30,difficulty:parsed.difficulty||'Moyen',people:+parsed.people||4,season:Array.isArray(parsed.season)?parsed.season:["printemps","été","automne","hiver"],tags:Array.isArray(parsed.tags)?parsed.tags:["Toute saison"],course:parsed.course||'plat',ingredients:Array.isArray(parsed.ingredients)?parsed.ingredients:[],steps:Array.isArray(parsed.steps)?parsed.steps:[]};
+    renderPhotoStep('result');
+  }catch(err){state.errorMsg='Erreur: '+err.message;renderPhotoStep('error');}
+}
+
+let ingIdx=0;
+function addIngRow(){ingIdx++;const div=document.createElement('div');div.className='ing-row';div.innerHTML=`<input placeholder="Nom" style="flex:2"><input placeholder="Qté" style="max-width:65px"><input placeholder="Unité" style="max-width:75px"><button class="del-btn" onclick="this.parentElement.remove()">×</button>`;document.getElementById('ing-editor').appendChild(div);}
+
+async function savePhotoRecipe(){
+  const name=document.getElementById('pr-name')?.value.trim()||'Recette';
+  const emoji=document.getElementById('pr-emoji')?.value.trim()||'🍽️';
+  const time=+document.getElementById('pr-time')?.value||30;
+  const difficulty=document.getElementById('pr-diff')?.value||'Moyen';
+  const people=+document.getElementById('pr-people')?.value||4;
+  const seasonVal=document.getElementById('pr-season')?.value||'printemps,été,automne,hiver';
+  const stepsRaw=document.getElementById('pr-steps')?.value||'';
+  const steps=stepsRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+  const ingRows=document.querySelectorAll('#ing-editor .ing-row');
+  const ingredients=[];ingRows.forEach(row=>{const ins=row.querySelectorAll('input');const n=ins[0]?.value.trim();if(n)ingredients.push({name:n,qty:ins[1]?.value.trim()||'',unit:ins[2]?.value.trim()||''});});
+  const course=document.getElementById('pr-course')?.value||'plat';
+  const newR={id:nextId++,name,emoji,time,difficulty,people,season:seasonVal.split(','),tags:state.pendingRecipe?.tags||['Toute saison'],course,ingredients,steps,custom:true,addedBy:currentUser?.id};
+  if(!family.recipes)family.recipes=[];
+  family.recipes.push(newR);
+  RECIPES=[...BASE_RECIPES,...family.recipes];
+  await saveFamilyData();
+  closePhotoModal();renderRecipeLibrary();
+  toast(`✅ "${name}" partagée avec la famille !`);
+}
+
+
+
+// ═══════════════════ IMPORT PAR URL ═══════════════════
+function openUrlModal(){
+  renderUrlStep('input');
+  document.getElementById('url-overlay').classList.add('open');
+}
+function closeUrlModal(){ document.getElementById('url-overlay').classList.remove('open'); }
+
+function renderUrlStep(step){
+  const body = document.getElementById('url-modal-body');
+  if(step==='input'){
+    const hasKey2=!!(state.apiKey);
+    body.innerHTML = `
+      ${!hasKey2?`<div style="background:var(--fire-pale);border:1px solid rgba(217,79,30,.2);border-radius:10px;padding:12px 15px;margin-bottom:14px">
+        <div style="font-size:.78rem;font-weight:700;color:var(--fire);margin-bottom:6px">🔑 Clé API Anthropic requise</div>
+        <p style="font-size:.79rem;color:var(--ink-3);margin-bottom:8px">Obtenez-la sur <a href="https://console.anthropic.com" target="_blank" style="color:var(--fire);font-weight:600">console.anthropic.com</a> — ~0,001€ par import</p>
+        <div style="display:flex;gap:7px">
+          <input type="password" id="url-api-key" placeholder="sk-ant-api03-..." style="flex:1;padding:8px 12px;border:1.5px solid var(--line-2);border-radius:8px;font-family:'Satoshi',sans-serif;font-size:.83rem;background:var(--paper-2)">
+          <button class="btn btn-primary btn-sm" onclick="saveUrlApiKey()">Enregistrer</button>
+        </div>
+      </div>`:`<div style="background:var(--herb-pale);border:1px solid rgba(61,122,74,.2);border-radius:9px;padding:8px 13px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:.79rem;color:var(--herb);font-weight:700">✅ Clé API configurée</span><button onclick="state.apiKey='';try{localStorage.removeItem('menuApiKey')}catch(e){}renderUrlStep('input')" style="font-size:.72rem;color:var(--ink-3);background:none;border:none;cursor:pointer;text-decoration:underline">Changer</button></div>`}
+      <p style="color:var(--ink-3);font-size:.83rem;margin-bottom:16px">
+        Allez sur Marmiton, 750g ou n'importe quel site de recette, 
+        <strong style="color:var(--ink)">sélectionnez tout le texte</strong> (Ctrl+A puis Ctrl+C) 
+        et collez-le ci-dessous.
+      </p>
+
+      <div style="margin-bottom:12px">
+        <div style="font-size:.71rem;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;font-family:'Cabinet Grotesk',sans-serif">
+          📋 Texte de la recette (copié depuis le site)
+        </div>
+        <textarea id="recipe-text-input" placeholder="Collez ici le texte copié de la page de recette (ingrédients, étapes, titre...)" 
+          style="width:100%;min-height:160px;padding:12px 14px;border:1.5px solid var(--line-2);border-radius:var(--r2);font-family:'Satoshi',sans-serif;font-size:.83rem;background:var(--paper-2);color:var(--ink);resize:vertical;line-height:1.5"></textarea>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:.71rem;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;font-family:'Cabinet Grotesk',sans-serif">
+          🔗 Lien de la recette <span style="font-weight:400;text-transform:none;letter-spacing:0">(optionnel — pour le QR code)</span>
+        </div>
+        <input type="url" id="recipe-url-input" placeholder="https://www.marmiton.org/recettes/..." 
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--line-2);border-radius:var(--r2);font-family:'Satoshi',sans-serif;font-size:.85rem;background:var(--paper-2);color:var(--ink)">
+      </div>
+
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px">
+        ${['marmiton.org','750g.com','cuisineaz.com','ptitchef.com','hervecuisine.com'].map(s=>`<span style="padding:3px 10px;border-radius:14px;border:1px solid var(--line-2);background:var(--paper-2);font-size:.72rem;color:var(--ink-3)">✓ ${s}</span>`).join('')}
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="importFromText()">✨ Extraire la recette</button>`;
+  } else if(step==='loading'){
+    body.innerHTML = `<div style="text-align:center;padding:32px">
+      <div class="spinner" style="width:40px;height:40px;border:3px solid var(--paper-3);border-top-color:var(--fire);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px"></div>
+      <h4 style="font-family:'Cabinet Grotesk',sans-serif;font-size:1.1rem;margin-bottom:6px">Extraction en cours…</h4>
+      <p style="color:var(--ink-3);font-size:.82rem">Claude lit la page et extrait la recette</p>
+    </div>`;
+  } else if(step==='error'){
+    body.innerHTML = `<div style="text-align:center;padding:28px">
+      <div style="font-size:2.5rem;margin-bottom:10px">⚠️</div>
+      <h4 style="font-family:'Cabinet Grotesk',sans-serif;margin-bottom:8px">Impossible d'extraire</h4>
+      <p style="color:var(--ink-3);font-size:.82rem;margin-bottom:16px">${state.errorMsg||"Vérifiez que le lien est correct et accessible."}</p>
+      <button class="btn btn-primary" onclick="renderUrlStep('input')">↩ Réessayer</button>
+    </div>`;
+  }
+}
+
+function saveUrlApiKey(){
+  const v=document.getElementById('url-api-key')?.value.trim();
+  if(!v||!v.startsWith('sk-')){toast('⚠️ Clé invalide');return;}
+  state.apiKey=v;try{localStorage.setItem('menuApiKey',v);}catch(e){}
+  renderUrlStep('input');toast('🔑 Clé enregistrée !');
+}
+
+async function importFromText(){
+  const rawText = document.getElementById('recipe-text-input')?.value.trim();
+  const sourceUrl = document.getElementById('recipe-url-input')?.value.trim()||'';
+  if(!rawText||rawText.length<30){toast('📋 Collez le texte de la recette d\'abord');return;}
+  const apiKey = state.apiKey||'';
+  if(!apiKey){toast('🔑 Configurez votre clé API d\'abord');renderUrlStep('input');return;}
+  renderUrlStep('loading');
+  try{
+    const resp = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({
+        model:"claude-haiku-4-5-20251001",
+        max_tokens:2000,
+        messages:[{role:"user",content:"Extrait la recette de ce texte copié depuis un site web et retourne UNIQUEMENT un JSON valide sans backticks avec: name(string), emoji(1 emoji), time(number minutes), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array), ingredients(array of {name,qty,unit}), steps(array of strings complets). Ignore pub, navigation, commentaires, ustensiles. JSON seul.\n\nTexte:\n"+rawText.substring(0,6000)}]
+      })
+    });
+    const data = await resp.json();
+    if(data.error){state.errorMsg='Erreur API: '+data.error.message;renderUrlStep('error');return;}
+    let text=(data.content||[]).map(c=>c.text||'').join('').trim();
+    text=text.replace(/```json|```/g,'').trim();
+    let parsed;
+    try{parsed=JSON.parse(text);}
+    catch{const m=text.match(/\{[\s\S]*\}/);if(m)parsed=JSON.parse(m[0]);else throw new Error("Format invalide");}
+    if(parsed.error){state.errorMsg=parsed.error;renderUrlStep('error');return;}
+    let sourceName='';
+    try{if(sourceUrl) sourceName=new URL(sourceUrl.startsWith('http')?sourceUrl:'https://'+sourceUrl).hostname.replace('www.','');}catch(e){}
+    state.pendingRecipe={
+      name:parsed.name||'Recette',emoji:parsed.emoji||'🍽️',
+      time:+parsed.time||30,difficulty:parsed.difficulty||'Moyen',
+      people:+parsed.people||4,
+      season:Array.isArray(parsed.season)?parsed.season:['printemps','été','automne','hiver'],
+      tags:Array.isArray(parsed.tags)?parsed.tags:['Maison'],
+      course:parsed.course||'plat',
+      ingredients:Array.isArray(parsed.ingredients)?parsed.ingredients:[],
+      steps:Array.isArray(parsed.steps)?parsed.steps:[],
+      sourceUrl,sourceName
+    };
+    state.photoDataUrl=null;
+    closeUrlModal();
+    document.getElementById('photo-overlay').classList.add('open');
+    renderPhotoStep('result');
+  }catch(err){
+    state.errorMsg='Erreur: '+err.message;
+    renderUrlStep('error');
+  }
+}
+
+
+// ═══════════════════ PREFS ═══════════════════
+function togglePref(el,key){state.prefs[key]=!state.prefs[key];el.classList.toggle('on',state.prefs[key]);if(['lunch','dinner','breakfast'].includes(key))renderWeek();}
+function addAllergie(){const el=document.getElementById('new-allergie');const v=el.value.trim();if(!v||state.allergies.includes(v))return;state.allergies.push(v);el.value='';renderAllergies();}
+function removeAllergie(v){state.allergies=state.allergies.filter(a=>a!==v);renderAllergies();}
+function renderAllergies(){const el=document.getElementById('allergies-cloud');if(!el)return;el.innerHTML=state.allergies.length?state.allergies.map(a=>`<span class="tag">${a}<span onclick="removeAllergie('${a}')" style="margin-left:4px;color:var(--mid)"> ×</span></span>`).join(''):'<span style="color:var(--mid);font-size:.8rem">Aucune exclusion</span>';}
+
+// ═══════════════════ PRINT ═══════════════════
+function renderPrint(){
+  const preview=document.getElementById('print-preview');
+  const ws=state.weekStart||new Date();const we=new Date(ws);we.setDate(ws.getDate()+6);
+  const used=new Set();
+  DAYS.forEach((_,i)=>{const d=state.menu[i]||{};['lunch','dinner'].forEach(mt=>{if(d[mt])used.add(d[mt].recipeId);});});
+  preview.innerHTML=`<div class="print-week-header"><h2>Menu de la semaine</h2><p>Du ${ws.getDate()} au ${we.getDate()} ${MONTHS[we.getMonth()]} ${we.getFullYear()} · Famille ${familyCode}</p></div>
+    <div class="print-grid">${DAYS.map((_,i)=>{
+      const lS=state.menu[i]?.lunch;const dS=state.menu[i]?.dinner;
+      const lR=lS?RECIPES.find(r=>r.id===lS.recipeId):null;const dR=dS?RECIPES.find(r=>r.id===dS.recipeId):null;
+      return `<div class="print-day"><div class="print-day-name">${DAYS[i]}</div><div class="print-meals">
+        ${lR?`<div class="print-meal"><div class="print-meal-label">☀️ Midi</div><div class="print-meal-name">${lR.emoji} ${lR.name}</div><div class="print-meal-p">👥 ${lS.persons??state.nbPersonnes}</div></div>`:''}
+        ${dR?`<div class="print-meal"><div class="print-meal-label">🌙 Soir</div><div class="print-meal-name">${dR.emoji} ${dR.name}</div><div class="print-meal-p">👥 ${dS.persons??state.nbPersonnes}</div></div>`:''}
+        ${!lR&&!dR?'<div style="color:#ccc;font-size:.66rem;padding:3px">—</div>':''}
+      </div></div>`;
+    }).join('')}</div>
+    <div style="margin-top:16px;padding-top:13px;border-top:2px solid var(--border)"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mid);margin-bottom:10px">🔗 QR Codes</div><div class="print-qr-section" id="qr-section"></div></div>`;
+  const qrSec=document.getElementById('qr-section');
+  [...used].forEach(rid=>{const r=RECIPES.find(x=>x.id===rid);if(!r)return;const item=document.createElement('div');item.className='print-qr-item';const box=document.createElement('div');box.className='qr-box';box.id='qr-'+rid;const label=document.createElement('p');label.textContent=r.emoji+' '+r.name;item.appendChild(box);item.appendChild(label);qrSec.appendChild(item);setTimeout(()=>{try{new QRCode(box,{text:window.location.href.split('?')[0]+'?recipe='+rid,width:76,height:76,colorDark:'#2c2c2c',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}},120);});
+}
+
+// ═══════════════════ TOAST ═══════════════════
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3200);}
+
+// ═══════════════════ START ═══════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  initLogin();
+  // Tentative de reconnexion auto
+  const saved=localStorage.getItem('menuCurrentUser');
+  if(saved){
+    try{
+      const {memberId,familyCode:fc}=JSON.parse(saved);
+      familyCode=fc;
+      document.getElementById('family-code-input').value=fc;
+      loadFamilyData().then(()=>{
+        const member=family.members.find(m=>m.id===memberId);
+        if(member){loginAs(memberId);}
+        else{loadFamily();}
+      });
+    }catch(e){/* ignore */}
+  }
+  document.getElementById('recipe-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+  document.getElementById('photo-overlay').addEventListener('click',function(e){if(e.target===this)closePhotoModal();});
+  document.getElementById('sug-overlay').addEventListener('click',function(e){if(e.target===this)closeSugModal();});
+  document.getElementById('url-overlay').addEventListener('click',function(e){if(e.target===this)closeUrlModal();});
+  updateSeason();
+});
+</script>
+</body>
+</html>
