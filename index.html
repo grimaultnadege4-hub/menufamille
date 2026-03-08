@@ -2047,18 +2047,34 @@ async function importFromUrl(){
   if(!groqKey){toast('🔑 Configurez votre clé Groq d\'abord');return;}
   renderUrlStep('loading');
   try{
-    // Récupérer le contenu via proxy CORS gratuit
-    const proxyUrl = 'https://api.allorigins.win/get?url='+encodeURIComponent(url);
-    const proxyResp = await fetch(proxyUrl);
-    const proxyData = await proxyResp.json();
-    if(!proxyData.contents) throw new Error('Impossible de lire la page');
-    // Extraire le texte brut depuis le HTML
-    const tmp = document.createElement('div');
-    tmp.innerHTML = proxyData.contents;
-    // Supprimer scripts, styles, nav, footer, aside
-    tmp.querySelectorAll('script,style,nav,footer,aside,header,[class*="comment"],[class*="ad"],[class*="banner"],[class*="social"],[class*="related"],[id*="comment"],[id*="ad"]').forEach(el=>el.remove());
-    const rawText = (tmp.innerText||tmp.textContent||'').replace(/\n{3,}/g,'\n\n').trim();
-    if(rawText.length<100) throw new Error('Contenu insuffisant récupéré depuis la page');
+    // Récupérer le contenu via proxy CORS (essaye plusieurs)
+    const proxies = [
+      u => 'https://corsproxy.io/?'+encodeURIComponent(u),
+      u => 'https://api.allorigins.win/get?url='+encodeURIComponent(u),
+      u => 'https://thingproxy.freeboard.io/fetch/'+u,
+    ];
+    let rawText = '';
+    for(const makeProxy of proxies){
+      try{
+        const proxyResp = await fetch(makeProxy(url), {signal: AbortSignal.timeout(8000)});
+        if(!proxyResp.ok) continue;
+        const ct = proxyResp.headers.get('content-type')||'';
+        let html = '';
+        if(ct.includes('application/json')){
+          const j = await proxyResp.json();
+          html = j.contents || j.body || '';
+        } else {
+          html = await proxyResp.text();
+        }
+        if(!html || html.length < 200) continue;
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        tmp.querySelectorAll('script,style,nav,footer,aside,header,[class*="comment"],[class*="ad"],[class*="banner"],[class*="social"],[class*="related"],[id*="comment"],[id*="ad"]').forEach(el=>el.remove());
+        rawText = (tmp.innerText||tmp.textContent||'').replace(/\n{3,}/g,'\n\n').trim();
+        if(rawText.length > 200) break;
+      }catch(e){ continue; }
+    }
+    if(rawText.length < 100) throw new Error('Impossible de lire la page. Essayez de coller le texte directement.');
     // Envoyer à Groq
     const resp = await fetch("https://api.groq.com/openai/v1/chat/completions",{
       method:"POST",
