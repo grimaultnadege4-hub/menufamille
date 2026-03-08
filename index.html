@@ -1900,8 +1900,9 @@ function renderPhotoStep(step){
     body.innerHTML=`<img src="${state.photoDataUrl}" class="photo-preview"><div class="ai-analyzing"><div class="spinner"></div><h4 style="font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:5px">Analyse en cours…</h4><p style="color:var(--mid);font-size:.82rem">L'IA extrait les ingrédients et les étapes</p></div>`;
   } else if(step==='result'){
     const r=state.pendingRecipe||{};
-    const stepsText=(r.steps||[]).join('\n');
-    const ingsHtml=(r.ingredients||[]).map((ing,i)=>`<div class="ing-row" id="ing-${i}"><input placeholder="Nom" value="${(ing.name||'').replace(/"/g,'&quot;')}" style="flex:2"><input placeholder="Qté" value="${(ing.qty||'').replace(/"/g,'&quot;')}" style="max-width:65px"><input placeholder="Unité" value="${(ing.unit||'').replace(/"/g,'&quot;')}" style="max-width:75px"><button class="del-btn" onclick="this.parentElement.remove()">×</button></div>`).join('');
+    const escHtml=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const stepsText=escHtml((r.steps||[]).join('\n'));
+    const ingsHtml=(r.ingredients||[]).map((ing,i)=>`<div class="ing-row" id="ing-${i}"><input placeholder="Nom" value="${escHtml(ing.name)}" style="flex:2"><input placeholder="Qté" value="${escHtml(ing.qty)}" style="max-width:65px"><input placeholder="Unité" value="${escHtml(ing.unit)}" style="max-width:75px"><button class="del-btn" onclick="this.parentElement.remove()">×</button></div>`).join('');
     body.innerHTML=`
       ${state.photoDataUrl?`<img src="${state.photoDataUrl}" class="photo-preview" style="max-height:140px">`:''}
       ${r.sourceUrl?`<div style="background:var(--ocean-pale);border-radius:8px;padding:7px 12px;margin-bottom:10px;font-size:.78rem;color:var(--ocean)">🔗 Source : <a href="${r.sourceUrl}" target="_blank" style="color:var(--ocean);font-weight:600">${r.sourceName||r.sourceUrl}</a></div>`:''}
