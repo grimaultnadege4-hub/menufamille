@@ -2038,55 +2038,172 @@ function saveUrlApiKey(){
   renderUrlStep('input');toast('🔑 Clé enregistrée !');
 }
 
-async function importFromText(){
+function importFromText(){
   const rawText = document.getElementById('recipe-text-input')?.value.trim();
   const sourceUrl = document.getElementById('recipe-url-input')?.value.trim()||'';
-  if(!rawText||rawText.length<50){toast('📋 Collez le texte de la recette d\'abord');return;}
+  if(!rawText||rawText.length<30){toast('📋 Collez le texte de la recette d\'abord');return;}
   renderUrlStep('loading');
   try{
-    // Utiliser Claude via l'API Anthropic dans l'artefact
-    const resp = await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "anthropic-version":"2023-06-01",
-        "anthropic-dangerous-direct-browser-access":"true"
-      },
-      body:JSON.stringify({
-        model:"claude-haiku-4-5-20251001",
-        max_tokens:2000,
-        messages:[{role:"user",content:`Extrais la recette de ce texte et retourne UNIQUEMENT un JSON valide sans backticks avec ces propriétés: name(string),emoji(1 emoji),time(number minutes),difficulty("Facile"/"Moyen"/"Expert"),people(number défaut 4),season(array parmi ["printemps","été","automne","hiver"]),course("aperitif"/"entree"/"plat"/"dessert"),tags(array),ingredients(array of {name:string,qty:string,unit:string}),steps(array of strings). JSON seul.
+    // ── Nettoyage universel (Marmiton, 750g, CuisineAZ, Ptitchef, BBC Food, AllRecipes...)
+    let txt = rawText
+      // Markdown
+      .replace(/__([^_]+)__/g,'$1')
+      .replace(/\*\*([^*]+)\*\*/g,'$1')
+      .replace(/\*([^*]+)\*/g,'$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
+      // Pub / navigation générique
+      .replace(/afficher le prix[^\n]*/gi,'')
+      .replace(/en cliquant sur les liens[^\n]*/gi,'')
+      .replace(/la suite après cette publicité[^\n]*/gi,'')
+      .replace(/notre top[^\n]*/gi,'')
+      .replace(/\+ de détails[^\n]*/gi,'')
+      .replace(/top des[^\n]*/gi,'')
+      .replace(/^acheter[^\n]*/gim,'')
+      .replace(/^voir plus[^\n]*/gim,'')
+      .replace(/gagnez \d+ min[^\n]*/gi,'')
+      .replace(/^partager[^\n]*/gim,'')
+      .replace(/^imprimer[^\n]*/gim,'')
+      .replace(/^commenter[^\n]*/gim,'')
+      .replace(/^noter[^\n]*/gim,'')
+      .replace(/^(suivre|abonner|newsletter|inscription)[^\n]*/gim,'')
+      .replace(/^(publicité|advertisement|sponsored)[^\n]*/gim,'')
+      .replace(/^(copyright|©|tous droits)[^\n]*/gim,'')
+      .replace(/^(facebook|twitter|instagram|pinterest|youtube)[^\n]*/gim,'')
+      .replace(/\d+\s*avis[^\n]*/gi,'')
+      .replace(/\d+\s*(commentaires?|étoiles?|\/5)[^\n]*/gi,'')
+      // Sections inutiles (ustensiles, matériel, équipement)
+      .replace(/^(ustensiles?|matériel|équipement|accessoires?)[\s\S]*?(?=\n(?:prépar|ingréd|étape|recette|\d+\s*min))/gim,'')
+      // Nettoyage final
+      .replace(/^\s*[\r\n]/gm,'')
+      .replace(/\n{3,}/g,'\n\n');
 
-Texte:
-${rawText.substring(0,4000)}`}]
-      })
-    });
-    const data = await resp.json();
-    if(data.error){state.errorMsg='Erreur API: '+data.error.message;renderUrlStep('error');return;}
-    let text=(data.content||[]).map(c=>c.text||'').join('').trim();
-    text=text.replace(/```json|```/g,'').trim();
-    let parsed;
-    try{parsed=JSON.parse(text);}
-    catch{const m=text.match(/\{[\s\S]*\}/);if(m)parsed=JSON.parse(m[0]);else throw new Error("Format invalide");}
-    if(parsed.error){state.errorMsg=parsed.error;renderUrlStep('error');return;}
+    const lines = txt.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+    const low = txt.toLowerCase();
+
+    // Nom : première ligne non numérique et significative
+    const name = lines.find(l=>l.length>4&&l.length<120&&!/^(\d|Temps|Prépar|Repos|Cuisson|Étape|Pour |Portion|Ingréd|Ustens)/i.test(l))||'Ma recette';
+
+    // Emoji
+    const emojiMap=[
+      [['poulet','volaille','dinde'],'🍗'],[['bœuf','boeuf','steak'],'🥩'],
+      [['poisson','saumon','thon','cabillaud','crevette'],'🐟'],
+      [['pasta','pâtes','spaghetti','tagliatelle','macaroni'],'🍝'],
+      [['pizza'],'🍕'],[['soupe','velouté','potage'],'🍲'],[['salade'],'🥗'],
+      [['tarte','quiche'],'🥧'],[['gâteau','cake','moelleux','fondant','brownie'],'🎂'],
+      [['chocolat'],'🍫'],[['crêpe'],'🥞'],[['riz'],'🍚'],
+      [['chou-fleur','gratin','béchamel'],'🥦'],[['tomate'],'🍅'],
+      [['champignon'],'🍄'],[['oeuf','oeufs','œuf'],'🥚'],[['fromage'],'🧀'],
+      [['curry'],'🍛'],[['burger'],'🍔']
+    ];
+    let emoji='🍽️';
+    for(const [kws,e] of emojiMap){if(kws.some(k=>low.includes(k))){emoji=e;break;}}
+
+    // Temps total
+    let time=30;
+    const allMin=[...txt.matchAll(/(\d+)\s*min/gi)].map(m=>+m[1]);
+    const allH=[...txt.matchAll(/(\d+)\s*h(?:eure)?s?/gi)].map(m=>+m[1]*60);
+    if(allMin.length||allH.length) time=Math.min([...allMin,...allH].reduce((a,b)=>a+b,0),480);
+
+    // Personnes
+    let people=4;
+    const pM=txt.match(/(?:pour|:)\s*(\d+)\s*(?:personnes?|pers\.?|convives?)/i)||txt.match(/(\d+)\s*personnes?/i);
+    if(pM) people=Math.min(+pM[1],20);
+
+    // Difficulté
+    let difficulty='Moyen';
+    if(/facile|simple/i.test(txt)) difficulty='Facile';
+    else if(/difficile|expert|confirm/i.test(txt)) difficulty='Expert';
+
+    // Course
+    let course='plat';
+    const nLow=name.toLowerCase();
+    if(/dessert|gâteau|cake|moelleux|brownie|crème|tiramisu|mousse/.test(nLow)) course='dessert';
+    else if(/entrée|salade|velouté|soupe/.test(nLow)) course='entree';
+    else if(/apéro|apéritif/.test(nLow)) course='aperitif';
+
+    // Saison
+    const season=[];
+    if(/asperge|fraise|petits pois|radis/.test(low)) season.push('printemps');
+    if(/courgette|tomate|melon|abricot|poivron/.test(low)) season.push('été');
+    if(/courge|potiron|champignon|châtaigne/.test(low)) season.push('automne');
+    if(/poireau|endive|clémentine|chou/.test(low)) season.push('hiver');
+    if(!season.length) season.push('printemps','été','automne','hiver');
+
+    // Tags
+    const tags=[];
+    if(/végétar/i.test(low)) tags.push('Végétarien');
+    if(/vegan/i.test(low)) tags.push('Vegan');
+    if(time<=25) tags.push('Rapide');
+    if(/poisson|saumon|thon|crevette/i.test(low)) tags.push('Poisson');
+    if(/poulet|bœuf|porc|agneau|veau/i.test(low)) tags.push('Viande');
+    if(!tags.length) tags.push('Maison');
+
+    // ── Ingrédients
+    // Mots-clés de section (FR + EN)
+    const sectionIngRe=/^(ingréd|ingredient|for the|pour la|pour le|pour les|composant|garniture)/i;
+    const sectionStepRe=/^(prépar|method|direction|instruction|étape\s*1|step\s*1|recette|la recette)/i;
+    const skipIngRe=/^(étape|step\s*\d|prépar|préchauff|ustensile|conseil|astuce|temps|cuisson|repos|total|notre|top|achet|voir|°|note|tips?|servir|conservation)/i;
+    // Unités FR + EN
+    const unitRe=/\d|(?:\b(?:g|kg|ml|cl|dl|l|oz|lb|cups?|tbsp|tsp|cs|cc|càs|càc|cuill[^\s]*|tasse|verre|sachet|pincée|pinch|bouquet|tranche|slice|filet|botte|boîte|can|pot|poignée|handful|morceau)\b)/i;
+
+    // Chercher section dédiée (FR/EN)
+    let iStart=0,iEnd=lines.length;
+    for(let i=0;i<lines.length;i++){
+      if(sectionIngRe.test(lines[i])&&lines[i].length<60) iStart=i+1;
+      if(iStart>0&&sectionStepRe.test(lines[i])&&lines[i].length<80){iEnd=i;break;}
+    }
+    const ingLines=iStart>0?lines.slice(iStart,iEnd):lines;
+
+    const ingredients=[];
+    for(const l of ingLines){
+      if(skipIngRe.test(l)||l.length>150||l.length<2) continue;
+      if(iStart===0&&!unitRe.test(l)) continue;
+      // Parser quantité + nom : "25 g de beurre" / "1 cup flour" / "½ tsp salt"
+      const m=l.match(/^([\d½⅓⅔¼¾⅛⅜⅝⅞][\d,./\s]*\s*(?:g|kg|ml|cl|dl|l|oz|lb|cups?|tbsp|tsp|cs|cc|càs|càc|cuill[^\s]*|tasse|verre|sachet|pincée|pinch|bouquet|tranche|slice|filet|botte|boîte|can|pot)?)\s*(?:d[e'e]\s*|of\s*)?(.+)$/i);
+      if(m&&m[2].trim()) ingredients.push({qty:m[1].trim(),unit:'',name:m[2].trim()});
+      else if(l.length<100) ingredients.push({qty:'',unit:'',name:l});
+      if(ingredients.length>=25) break;
+    }
+
+    // ── Étapes (FR + EN)
+    const steps=[];
+    const cookV=/chauffer|mélanger|ajouter|couper|faire|mettre|verser|cuire|porter|incorporer|battre|fouetter|réserver|saler|poivrer|enfourner|préchauffer|disposer|beurrer|parsemer|recouvrir|préparer|nettoyer|bouillir|fondre|heat|mix|add|cut|stir|cook|pour|bring|fold|whisk|bake|preheat|place|season|combine|simmer|boil|chop|slice|dice|drain|rinse|blend/i;
+    let i=0;
+    while(i<lines.length){
+      const l=lines[i];
+      // "Étape 1" / "Step 1" suivi du contenu sur la ligne suivante
+      if(/^(étape|step)\s*\d*/i.test(l)&&l.length<30){
+        if(i+1<lines.length&&lines[i+1].length>10) steps.push(lines[i+1]);
+        i+=2;continue;
+      }
+      // Lignes numérotées "1." "1)" "1-"
+      if(/^\d+\s*[.):\-]\s/.test(l)&&l.length>15&&l.length<600){
+        steps.push(l.replace(/^\d+\s*[.):\-]\s*/,''));i++;continue;
+      }
+      // Phrases avec verbes de cuisine
+      if(cookV.test(l)&&l.length>25&&l.length<600&&!/^\d+\s*(g|min|cl|h|oz|lb)\b/i.test(l)&&!unitRe.test(l.substring(0,6))){
+        steps.push(l);
+      }
+      i++;
+    }
+
+    // Source
+    let sourceName='';
+    try{if(sourceUrl) sourceName=new URL(sourceUrl.startsWith('http')?sourceUrl:'https://'+sourceUrl).hostname.replace('www.','');}catch(e){}
+
     state.pendingRecipe={
-      name:parsed.name||'Recette',emoji:parsed.emoji||'🍽️',
-      time:+parsed.time||30,difficulty:parsed.difficulty||'Moyen',
-      people:+parsed.people||4,
-      season:Array.isArray(parsed.season)?parsed.season:['printemps','été','automne','hiver'],
-      tags:Array.isArray(parsed.tags)?parsed.tags:['Toute saison'],
-      course:parsed.course||'plat',
-      ingredients:Array.isArray(parsed.ingredients)?parsed.ingredients:[],
-      steps:Array.isArray(parsed.steps)?parsed.steps:[],
-      sourceUrl:sourceUrl,
-      sourceName:sourceUrl?new URL(sourceUrl.startsWith('http')?sourceUrl:'https://'+sourceUrl).hostname.replace('www.',''):''
+      name,emoji,time,difficulty,people,season,tags,course,
+      ingredients:ingredients.length?ingredients:[{qty:'',unit:'',name:'Voir recette originale'}],
+      steps:steps.length?steps:['Voir la recette sur le site source'],
+      sourceUrl,sourceName
     };
     state.photoDataUrl=null;
     closeUrlModal();
     document.getElementById('photo-overlay').classList.add('open');
     renderPhotoStep('result');
   }catch(err){
-    state.errorMsg='Erreur: '+err.message;renderUrlStep('error');
+    state.errorMsg='Erreur: '+err.message;
+    renderUrlStep('error');
   }
 }
 
