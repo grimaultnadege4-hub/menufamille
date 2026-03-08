@@ -2089,7 +2089,7 @@ async function importFromUrl(){
         temperature:0.1,
         messages:[
           {role:"system",content:"Tu es un assistant culinaire. Tu extrais les recettes depuis du texte et retournes UNIQUEMENT un JSON valide, sans backticks, sans texte autour."},
-          {role:"user",content:"Extrait la recette de ce texte et retourne UNIQUEMENT un JSON avec: name(string), emoji(1 emoji), time(number minutes), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array de strings), ingredients(array of {name:string,qty:string,unit:string}), steps(array of strings complets). Ignore pub, navigation, commentaires. JSON seul.\n\n"+rawText.substring(0,6000)}
+          {role:"user",content:"Extrait la recette de ce texte et retourne UNIQUEMENT un JSON valide sans backticks.\n\nRègles IMPORTANTES:\n- steps: garde CHAQUE étape en entier, mot pour mot, sans rien résumer ni raccourcir. Si une étape fait 3 phrases, garde les 3 phrases complètes.\n- ingredients: garde les quantités exactes et les noms complets.\n- Ignore tout ce qui n'est pas la recette (pub, navigation, commentaires, ustensiles, notes).\n\nPropriétés JSON: name(string), emoji(1 emoji), time(number minutes total), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array de strings), ingredients(array of {name:string,qty:string,unit:string}), steps(array of strings — texte COMPLET de chaque étape).\n\nJSON seul, rien d'autre.\n\n"+rawText.substring(0,8000)}
         ]
       })
     });
@@ -2155,7 +2155,7 @@ async function importFromText(){
         temperature:0.1,
         messages:[
           {role:"system",content:"Tu es un assistant culinaire. Tu extrais les recettes depuis du texte et retournes UNIQUEMENT un JSON valide, sans backticks, sans texte autour."},
-          {role:"user",content:"Extrait la recette de ce texte et retourne UNIQUEMENT un JSON avec: name(string), emoji(1 emoji), time(number minutes), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array de strings), ingredients(array of {name:string,qty:string,unit:string}), steps(array of strings). Ignore pub, navigation, commentaires. JSON seul.\n\n"+rawText.substring(0,6000)}
+          {role:"user",content:"Extrait la recette de ce texte et retourne UNIQUEMENT un JSON valide sans backticks.\n\nRègles IMPORTANTES:\n- steps: garde CHAQUE étape en entier, mot pour mot, sans rien résumer ni raccourcir. Si une étape fait 3 phrases, garde les 3 phrases complètes.\n- ingredients: garde les quantités exactes et les noms complets.\n- Ignore tout ce qui n'est pas la recette (pub, navigation, commentaires, ustensiles, notes).\n\nPropriétés JSON: name(string), emoji(1 emoji), time(number minutes total), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array de strings), ingredients(array of {name:string,qty:string,unit:string}), steps(array of strings — texte COMPLET de chaque étape).\n\nJSON seul, rien d'autre.\n\n"+rawText.substring(0,8000)}
         ]
       })
     });
