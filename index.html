@@ -1988,18 +1988,18 @@ function renderUrlStep(step){
   const body = document.getElementById('url-modal-body');
   if(step==='input'){
     const hasKey2=!!(state.apiKey);
-    const hasGroq=!!(state.groqKey||localStorage.getItem('groqKey'));
+    const hasGroq=!!(state.geminiKey||localStorage.getItem('geminiKey'));
     body.innerHTML = `
       ${!hasGroq?`<div style="background:var(--fire-pale);border:1px solid rgba(217,79,30,.2);border-radius:10px;padding:12px 15px;margin-bottom:14px">
-        <div style="font-size:.78rem;font-weight:700;color:var(--fire);margin-bottom:4px">🔑 Clé Groq requise — <span style="color:var(--herb)">100% gratuit</span></div>
-        <p style="font-size:.78rem;color:var(--ink-3);margin-bottom:8px">Créez une clé gratuite sur <a href="https://console.groq.com" target="_blank" style="color:var(--fire);font-weight:600">console.groq.com</a> → API Keys</p>
+        <div style="font-size:.78rem;font-weight:700;color:var(--fire);margin-bottom:4px">🔑 Clé Gemini requise — <span style="color:var(--herb)">100% gratuit</span></div>
+        <p style="font-size:.78rem;color:var(--ink-3);margin-bottom:8px">Créez une clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--fire);font-weight:600">aistudio.google.com</a> → Create API key</p>
         <div style="display:flex;gap:7px">
-          <input type="password" id="groq-api-key" placeholder="gsk_..." style="flex:1;padding:8px 12px;border:1.5px solid var(--line-2);border-radius:8px;font-family:'Satoshi',sans-serif;font-size:.83rem;background:var(--paper-2)">
-          <button class="btn btn-primary btn-sm" onclick="saveGroqKey()">Enregistrer</button>
+          <input type="password" id="gemini-api-key" placeholder="AIza..." style="flex:1;padding:8px 12px;border:1.5px solid var(--line-2);border-radius:8px;font-family:'Satoshi',sans-serif;font-size:.83rem;background:var(--paper-2)">
+          <button class="btn btn-primary btn-sm" onclick="saveGeminiKey()">Enregistrer</button>
         </div>
       </div>`:`<div style="background:var(--herb-pale);border:1px solid rgba(61,122,74,.2);border-radius:9px;padding:8px 13px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:.79rem;color:var(--herb);font-weight:700">✅ Clé Groq configurée</span>
-        <button onclick="state.groqKey='';localStorage.removeItem('groqKey');renderUrlStep('input')" style="font-size:.72rem;color:var(--ink-3);background:none;border:none;cursor:pointer;text-decoration:underline">Changer</button>
+        <span style="font-size:.79rem;color:var(--herb);font-weight:700">✅ Clé Gemini configurée</span>
+        <button onclick="state.geminiKey='';localStorage.removeItem('geminiKey');renderUrlStep('input')" style="font-size:.72rem;color:var(--ink-3);background:none;border:none;cursor:pointer;text-decoration:underline">Changer</button>
       </div>`}
 
       <div style="margin-bottom:14px">
@@ -2047,8 +2047,8 @@ function renderUrlStep(step){
 async function importFromUrl(){
   const url = document.getElementById('recipe-url-input')?.value.trim();
   if(!url||!url.startsWith('http')){toast('🔗 Entrez un lien valide');return;}
-  const groqKey = state.groqKey||localStorage.getItem('groqKey')||'';
-  if(!groqKey){toast('🔑 Configurez votre clé Groq d\'abord');return;}
+  const geminiKey = state.geminiKey||localStorage.getItem('geminiKey')||'';
+  if(!geminiKey){toast('🔑 Configurez votre clé Gemini d\'abord');return;}
   renderUrlStep('loading');
   try{
     // Récupérer le contenu via proxy CORS (essaye plusieurs)
@@ -2079,27 +2079,7 @@ async function importFromUrl(){
       }catch(e){ continue; }
     }
     if(rawText.length < 100) throw new Error('Impossible de lire la page. Essayez de coller le texte directement.');
-    // Envoyer à Groq
-    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+groqKey},
-      body:JSON.stringify({
-        model:"llama-3.3-70b-versatile",
-        max_tokens:2000,
-        temperature:0.1,
-        messages:[
-          {role:"system",content:"Tu es un assistant culinaire. Tu extrais les recettes depuis du texte et retournes UNIQUEMENT un JSON valide, sans backticks, sans texte autour."},
-          {role:"user",content:"Extrait la recette de ce texte et retourne UNIQUEMENT un JSON valide sans backticks.\n\nRègles IMPORTANTES:\n- steps: garde CHAQUE étape en entier, mot pour mot, sans rien résumer ni raccourcir. Si une étape fait 3 phrases, garde les 3 phrases complètes.\n- ingredients: garde les quantités exactes et les noms complets.\n- Ignore tout ce qui n'est pas la recette (pub, navigation, commentaires, ustensiles, notes).\n\nPropriétés JSON: name(string), emoji(1 emoji), time(number minutes total), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array de strings), ingredients(array of {name:string,qty:string,unit:string}), steps(array of strings — texte COMPLET de chaque étape).\n\nJSON seul, rien d'autre.\n\n"+rawText.substring(0,8000)}
-        ]
-      })
-    });
-    const data = await resp.json();
-    if(data.error){state.errorMsg='Erreur Groq: '+data.error.message;renderUrlStep('error');return;}
-    let text=(data.choices?.[0]?.message?.content||'').trim();
-    text=text.replace(/```json|```/g,'').trim();
-    let parsed;
-    try{parsed=JSON.parse(text);}
-    catch{const m=text.match(/\{[\s\S]*\}/);if(m)parsed=JSON.parse(m[0]);else throw new Error("Format invalide");}
+    const parsed = await callGeminiRecipe(rawText);
     let sourceName='';
     try{sourceName=new URL(url).hostname.replace('www.','');}catch(e){}
     state.pendingRecipe={
@@ -2118,18 +2098,18 @@ async function importFromUrl(){
     document.getElementById('photo-overlay').classList.add('open');
     renderPhotoStep('result');
   }catch(err){
-    state.errorMsg='Erreur: '+err.message;
+    state.errorMsg=err.message;
     renderUrlStep('error');
   }
 }
 
-function saveGroqKey(){
-  const v = document.getElementById('groq-api-key')?.value.trim();
-  if(!v||!v.startsWith('gsk_')){toast('⚠️ Clé invalide (doit commencer par gsk_)');return;}
-  state.groqKey = v;
-  try{localStorage.setItem('groqKey', v);}catch(e){}
+function saveGeminiKey(){
+  const v = document.getElementById('gemini-api-key')?.value.trim();
+  if(!v||!v.startsWith('AIza')){toast('⚠️ Clé invalide (doit commencer par AIza)');return;}
+  state.geminiKey = v;
+  try{localStorage.setItem('geminiKey', v);}catch(e){}
   renderUrlStep('input');
-  toast('🔑 Clé Groq enregistrée !');
+  toast('🔑 Clé Gemini enregistrée !');
 }
 function saveUrlApiKey(){
   const v=document.getElementById('url-api-key')?.value.trim();
@@ -2146,27 +2126,7 @@ async function importFromText(){
   const groqKey = state.groqKey || localStorage.getItem('groqKey') || '';
   if(!groqKey){toast('🔑 Configurez votre clé Groq d\'abord');renderUrlStep('input');return;}
   try{
-    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+groqKey},
-      body:JSON.stringify({
-        model:"llama-3.3-70b-versatile",
-        max_tokens:2000,
-        temperature:0.1,
-        messages:[
-          {role:"system",content:"Tu es un assistant culinaire. Tu extrais les recettes depuis du texte et retournes UNIQUEMENT un JSON valide, sans backticks, sans texte autour."},
-          {role:"user",content:"Extrait la recette de ce texte et retourne UNIQUEMENT un JSON valide sans backticks.\n\nRègles IMPORTANTES:\n- steps: garde CHAQUE étape en entier, mot pour mot, sans rien résumer ni raccourcir. Si une étape fait 3 phrases, garde les 3 phrases complètes.\n- ingredients: garde les quantités exactes et les noms complets.\n- Ignore tout ce qui n'est pas la recette (pub, navigation, commentaires, ustensiles, notes).\n\nPropriétés JSON: name(string), emoji(1 emoji), time(number minutes total), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array de strings), ingredients(array of {name:string,qty:string,unit:string}), steps(array of strings — texte COMPLET de chaque étape).\n\nJSON seul, rien d'autre.\n\n"+rawText.substring(0,8000)}
-        ]
-      })
-    });
-    const data = await resp.json();
-    if(data.error){state.errorMsg='Erreur Groq: '+data.error.message;renderUrlStep('error');return;}
-    let text=(data.choices?.[0]?.message?.content||'').trim();
-    text=text.replace(/```json|```/g,'').trim();
-    let parsed;
-    try{parsed=JSON.parse(text);}
-    catch{const m=text.match(/\{[\s\S]*\}/);if(m)parsed=JSON.parse(m[0]);else throw new Error("Format invalide");}
-    if(parsed.error){state.errorMsg=parsed.error;renderUrlStep('error');return;}
+    const parsed = await callGeminiRecipe(rawText);
     let sourceName='';
     try{if(sourceUrl) sourceName=new URL(sourceUrl.startsWith('http')?sourceUrl:'https://'+sourceUrl).hostname.replace('www.','');}catch(e){}
     state.pendingRecipe={
@@ -2190,6 +2150,67 @@ async function importFromText(){
   }
 }
 
+
+
+// ═══════════════════ GEMINI HELPER ═══════════════════
+async function callGeminiRecipe(textContent){
+  const geminiKey = state.geminiKey||localStorage.getItem('geminiKey')||'';
+  if(!geminiKey) throw new Error('Clé Gemini manquante');
+
+  const prompt = `Extrais la recette complète de ce texte et retourne UNIQUEMENT un objet JSON valide.
+
+RÈGLES STRICTES:
+1. steps: reproduis chaque étape EN ENTIER, mot pour mot, sans rien raccourcir ni résumer.
+2. ingredients: garde les quantités exactes (ex: "200", "1/2", "3").
+3. Ignore: publicités, navigation, commentaires, ustensiles, notes, avis.
+
+Structure JSON obligatoire:
+{
+  "name": "Nom de la recette",
+  "emoji": "🍽️",
+  "time": 30,
+  "difficulty": "Facile",
+  "people": 4,
+  "season": ["printemps","été","automne","hiver"],
+  "course": "plat",
+  "tags": ["Maison"],
+  "ingredients": [{"name":"Farine","qty":"200","unit":"g"}],
+  "steps": ["Étape 1 complète...","Étape 2 complète..."]
+}
+
+difficulty: "Facile", "Moyen" ou "Expert"
+course: "aperitif", "entree", "plat" ou "dessert"
+JSON seul, aucun texte autour.
+
+TEXTE:
+${textContent.substring(0,12000)}`;
+
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+    {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{
+          temperature:0.1,
+          maxOutputTokens:4096,
+          responseMimeType:"application/json"
+        }
+      })
+    }
+  );
+  const data = await resp.json();
+  if(data.error) throw new Error('Gemini: '+data.error.message);
+  let text=(data.candidates?.[0]?.content?.parts?.[0]?.text||'').trim();
+  text=text.replace(/```json|```/g,'').trim();
+  let parsed;
+  try{parsed=JSON.parse(text);}
+  catch{const m=text.match(/\{[\s\S]*\}/);if(m)parsed=JSON.parse(m[0]);else throw new Error("JSON invalide");}
+  if(!Array.isArray(parsed.steps)||parsed.steps.length===0) throw new Error("Étapes manquantes");
+  if(!Array.isArray(parsed.ingredients)||parsed.ingredients.length===0) throw new Error("Ingrédients manquants");
+  return parsed;
+}
 
 // ═══════════════════ PREFS ═══════════════════
 function togglePref(el,key){state.prefs[key]=!state.prefs[key];el.classList.toggle('on',state.prefs[key]);if(['lunch','dinner','breakfast'].includes(key))renderWeek();}
