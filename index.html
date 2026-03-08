@@ -1900,27 +1900,30 @@ function renderPhotoStep(step){
     body.innerHTML=`<img src="${state.photoDataUrl}" class="photo-preview"><div class="ai-analyzing"><div class="spinner"></div><h4 style="font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:5px">Analyse en cours…</h4><p style="color:var(--mid);font-size:.82rem">L'IA extrait les ingrédients et les étapes</p></div>`;
   } else if(step==='result'){
     const r=state.pendingRecipe||{};
+    const stepsText=(r.steps||[]).join('\n');
+    const ingsHtml=(r.ingredients||[]).map((ing,i)=>`<div class="ing-row" id="ing-${i}"><input placeholder="Nom" value="${(ing.name||'').replace(/"/g,'&quot;')}" style="flex:2"><input placeholder="Qté" value="${(ing.qty||'').replace(/"/g,'&quot;')}" style="max-width:65px"><input placeholder="Unité" value="${(ing.unit||'').replace(/"/g,'&quot;')}" style="max-width:75px"><button class="del-btn" onclick="this.parentElement.remove()">×</button></div>`).join('');
     body.innerHTML=`
-      <img src="${state.photoDataUrl}" class="photo-preview" style="max-height:140px">
+      ${state.photoDataUrl?`<img src="${state.photoDataUrl}" class="photo-preview" style="max-height:140px">`:''}
+      ${r.sourceUrl?`<div style="background:var(--ocean-pale);border-radius:8px;padding:7px 12px;margin-bottom:10px;font-size:.78rem;color:var(--ocean)">🔗 Source : <a href="${r.sourceUrl}" target="_blank" style="color:var(--ocean);font-weight:600">${r.sourceName||r.sourceUrl}</a></div>`:''}
       <div class="ai-result">
         <h4>✅ Recette extraite — vérifiez et ajustez</h4>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
-          <div class="field"><label>Nom</label><input id="pr-name" value="${r.name}"></div>
-          <div class="field"><label>Emoji</label><input id="pr-emoji" value="${r.emoji}" style="max-width:70px"></div>
-          <div class="field"><label>⏱ Temps (min)</label><input id="pr-time" type="number" value="${r.time}"></div>
+          <div class="field"><label>Nom</label><input id="pr-name" value="${(r.name||'').replace(/"/g,'&quot;')}"></div>
+          <div class="field"><label>Emoji</label><input id="pr-emoji" value="${r.emoji||'🍽️'}" style="max-width:70px"></div>
+          <div class="field"><label>⏱ Temps (min)</label><input id="pr-time" type="number" value="${r.time||30}"></div>
           <div class="field"><label>Difficulté</label><select id="pr-diff"><option ${r.difficulty==='Facile'?'selected':''}>Facile</option><option ${r.difficulty==='Moyen'?'selected':''}>Moyen</option><option ${r.difficulty==='Expert'?'selected':''}>Expert</option></select></div>
-          <div class="field"><label>Personnes</label><input id="pr-people" type="number" value="${r.people}"></div>
+          <div class="field"><label>Personnes</label><input id="pr-people" type="number" value="${r.people||4}"></div>
           <div class="field"><label>Catégorie</label><select id="pr-course"><option value="plat" ${r.course==='plat'||!r.course?'selected':''}>🍽️ Plat</option><option value="entree" ${r.course==='entree'?'selected':''}>🥗 Entrée</option><option value="aperitif" ${r.course==='aperitif'?'selected':''}>🥂 Apéritif</option><option value="dessert" ${r.course==='dessert'?'selected':''}>🍮 Dessert</option></select></div>
           <div class="field"><label>Saison</label><select id="pr-season"><option value="printemps,été,automne,hiver">Toute saison</option><option value="printemps,été">Printemps/Été</option><option value="automne,hiver">Automne/Hiver</option><option value="printemps">Printemps</option><option value="été">Été</option><option value="automne">Automne</option><option value="hiver">Hiver</option></select></div>
         </div>
         <div class="field" style="margin-top:7px">
           <label>🧄 Ingrédients (nom | qté | unité)</label>
-          <div id="ing-editor">${r.ingredients.map((ing,i)=>`<div class="ing-row" id="ing-${i}"><input placeholder="Nom" value="${ing.name}" style="flex:2"><input placeholder="Qté" value="${ing.qty||''}" style="max-width:65px"><input placeholder="Unité" value="${ing.unit||''}" style="max-width:75px"><button class="del-btn" onclick="this.parentElement.remove()">×</button></div>`).join('')}</div>
+          <div id="ing-editor">${ingsHtml}</div>
           <button class="btn btn-ghost btn-xs" style="margin-top:6px" onclick="addIngRow()">+ Ingrédient</button>
         </div>
-        <div class="field"><label>👨‍🍳 Étapes (une par ligne)</label><textarea id="pr-steps">${r.steps.join('\n')}</textarea></div>
+        <div class="field"><label>👨‍🍳 Étapes (une par ligne)</label><textarea id="pr-steps" style="min-height:120px">${stepsText}</textarea></div>
         <div style="display:flex;gap:9px;margin-top:13px">
-          <button class="btn btn-ghost" onclick="renderPhotoStep('upload')">↩ Recommencer</button>
+          <button class="btn btn-ghost" onclick="closePhotoModal();openUrlModal()">↩ Recommencer</button>
           <button class="btn btn-primary" style="flex:1" onclick="savePhotoRecipe()">💾 Partager avec la famille</button>
         </div>
       </div>`;
@@ -1962,7 +1965,7 @@ async function savePhotoRecipe(){
   const ingRows=document.querySelectorAll('#ing-editor .ing-row');
   const ingredients=[];ingRows.forEach(row=>{const ins=row.querySelectorAll('input');const n=ins[0]?.value.trim();if(n)ingredients.push({name:n,qty:ins[1]?.value.trim()||'',unit:ins[2]?.value.trim()||''});});
   const course=document.getElementById('pr-course')?.value||'plat';
-  const newR={id:nextId++,name,emoji,time,difficulty,people,season:seasonVal.split(','),tags:state.pendingRecipe?.tags||['Toute saison'],course,ingredients,steps,custom:true,addedBy:currentUser?.id};
+  const newR={id:nextId++,name,emoji,time,difficulty,people,season:seasonVal.split(','),tags:state.pendingRecipe?.tags||['Toute saison'],course,ingredients,steps,custom:true,addedBy:currentUser?.id,sourceUrl:state.pendingRecipe?.sourceUrl||null,sourceName:state.pendingRecipe?.sourceName||null};
   if(!family.recipes)family.recipes=[];
   family.recipes.push(newR);
   RECIPES=[...BASE_RECIPES,...family.recipes];
