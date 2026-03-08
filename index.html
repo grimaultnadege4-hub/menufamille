@@ -951,7 +951,7 @@ header h1 span { color: var(--fire-soft); }
     <div style="background:var(--white);border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
         <h3 style="font-family:'Playfair Display',serif;font-size:1.25rem">📚 Recettes de la famille</h3>
-        <button class="btn btn-blue btn-sm" onclick="openUrlModal()">📋 Ajouter via texte</button>
+        <button class="btn btn-blue btn-sm" onclick="openUrlModal()">🔗 Ajouter via lien</button>
         <button class="btn btn-primary btn-sm" onclick="openPhotoModal()">📷 Ajouter via photo</button>
       </div>
       <input type="text" id="recipe-lib-search" placeholder="Rechercher..." oninput="renderRecipeLibrary()" style="width:100%;padding:8px 13px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.86rem;margin-bottom:12px">
@@ -1064,7 +1064,7 @@ header h1 span { color: var(--fire-soft); }
 <div class="overlay" id="url-overlay">
   <div class="modal" style="max-width:560px">
     <div class="modal-header">
-      <h2>📋 Coller une recette depuis internet</h2>
+      <h2>🔗 Importer une recette depuis internet</h2>
       <button class="modal-close" onclick="closeUrlModal()">✕</button>
     </div>
     <div class="modal-body" id="url-modal-body"></div>
@@ -1984,47 +1984,45 @@ function renderUrlStep(step){
   const body = document.getElementById('url-modal-body');
   if(step==='input'){
     const hasKey2=!!(state.apiKey);
+    const hasGroq=!!(state.groqKey||localStorage.getItem('groqKey'));
     body.innerHTML = `
-      ${(state.groqKey||localStorage.getItem('groqKey'))?
-        `<div style="background:var(--herb-pale);border:1px solid rgba(61,122,74,.2);border-radius:9px;padding:8px 13px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:.79rem;color:var(--herb);font-weight:700">✅ Clé Groq configurée</span>
-          <button onclick="state.groqKey='';localStorage.removeItem('groqKey');renderUrlStep('input')" style="font-size:.72rem;color:var(--ink-3);background:none;border:none;cursor:pointer;text-decoration:underline">Changer</button>
-        </div>` :
-        `<div style="background:var(--fire-pale);border:1px solid rgba(217,79,30,.2);border-radius:10px;padding:12px 15px;margin-bottom:14px">
-          <div style="font-size:.78rem;font-weight:700;color:var(--fire);margin-bottom:4px">🔑 Clé Groq requise — <span style="color:var(--herb)">100% gratuit</span></div>
-          <p style="font-size:.78rem;color:var(--ink-3);margin-bottom:8px">Créez une clé gratuite sur <a href="https://console.groq.com" target="_blank" style="color:var(--fire);font-weight:600">console.groq.com</a> → API Keys</p>
-          <div style="display:flex;gap:7px">
-            <input type="password" id="groq-api-key" placeholder="gsk_..." style="flex:1;padding:8px 12px;border:1.5px solid var(--line-2);border-radius:8px;font-family:'Satoshi',sans-serif;font-size:.83rem;background:var(--paper-2)">
-            <button class="btn btn-primary btn-sm" onclick="saveGroqKey()">Enregistrer</button>
-          </div>
-        </div>`}
-      <p style="color:var(--ink-3);font-size:.83rem;margin-bottom:16px">
-        Allez sur Marmiton, 750g ou n'importe quel site de recette, 
-        <strong style="color:var(--ink)">sélectionnez tout le texte</strong> (Ctrl+A puis Ctrl+C) 
-        et collez-le ci-dessous.
-      </p>
-
-      <div style="margin-bottom:12px">
-        <div style="font-size:.71rem;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;font-family:'Cabinet Grotesk',sans-serif">
-          📋 Texte de la recette (copié depuis le site)
+      ${!hasGroq?`<div style="background:var(--fire-pale);border:1px solid rgba(217,79,30,.2);border-radius:10px;padding:12px 15px;margin-bottom:14px">
+        <div style="font-size:.78rem;font-weight:700;color:var(--fire);margin-bottom:4px">🔑 Clé Groq requise — <span style="color:var(--herb)">100% gratuit</span></div>
+        <p style="font-size:.78rem;color:var(--ink-3);margin-bottom:8px">Créez une clé gratuite sur <a href="https://console.groq.com" target="_blank" style="color:var(--fire);font-weight:600">console.groq.com</a> → API Keys</p>
+        <div style="display:flex;gap:7px">
+          <input type="password" id="groq-api-key" placeholder="gsk_..." style="flex:1;padding:8px 12px;border:1.5px solid var(--line-2);border-radius:8px;font-family:'Satoshi',sans-serif;font-size:.83rem;background:var(--paper-2)">
+          <button class="btn btn-primary btn-sm" onclick="saveGroqKey()">Enregistrer</button>
         </div>
-        <textarea id="recipe-text-input" placeholder="Collez ici le texte copié de la page de recette (ingrédients, étapes, titre...)" 
-          style="width:100%;min-height:160px;padding:12px 14px;border:1.5px solid var(--line-2);border-radius:var(--r2);font-family:'Satoshi',sans-serif;font-size:.83rem;background:var(--paper-2);color:var(--ink);resize:vertical;line-height:1.5"></textarea>
-      </div>
+      </div>`:`<div style="background:var(--herb-pale);border:1px solid rgba(61,122,74,.2);border-radius:9px;padding:8px 13px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:.79rem;color:var(--herb);font-weight:700">✅ Clé Groq configurée</span>
+        <button onclick="state.groqKey='';localStorage.removeItem('groqKey');renderUrlStep('input')" style="font-size:.72rem;color:var(--ink-3);background:none;border:none;cursor:pointer;text-decoration:underline">Changer</button>
+      </div>`}
 
-      <div style="margin-bottom:16px">
+      <div style="margin-bottom:14px">
         <div style="font-size:.71rem;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;font-family:'Cabinet Grotesk',sans-serif">
-          🔗 Lien de la recette <span style="font-weight:400;text-transform:none;letter-spacing:0">(optionnel — pour le QR code)</span>
+          🔗 Lien de la recette
         </div>
-        <input type="url" id="recipe-url-input" placeholder="https://www.marmiton.org/recettes/..." 
-          style="width:100%;padding:10px 14px;border:1.5px solid var(--line-2);border-radius:var(--r2);font-family:'Satoshi',sans-serif;font-size:.85rem;background:var(--paper-2);color:var(--ink)">
+        <div style="display:flex;gap:8px">
+          <input type="url" id="recipe-url-input" placeholder="https://www.marmiton.org/recettes/..." 
+            style="flex:1;padding:10px 14px;border:1.5px solid var(--line-2);border-radius:var(--r2);font-family:'Satoshi',sans-serif;font-size:.85rem;background:var(--paper-2);color:var(--ink)"
+            onkeydown="if(event.key==='Enter')importFromUrl()">
+          <button class="btn btn-primary" onclick="importFromUrl()">✨ Importer</button>
+        </div>
+        <p style="font-size:.75rem;color:var(--ink-3);margin-top:7px">Le lien sera aussi utilisé pour le QR code 📱</p>
       </div>
 
       <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px">
-        ${['marmiton.org','750g.com','cuisineaz.com','ptitchef.com','hervecuisine.com'].map(s=>`<span style="padding:3px 10px;border-radius:14px;border:1px solid var(--line-2);background:var(--paper-2);font-size:.72rem;color:var(--ink-3)">✓ ${s}</span>`).join('')}
+        ${['marmiton.org','750g.com','cuisineaz.com','ptitchef.com','hervecuisine.com','bbcgoodfood.com'].map(s=>`<span style="padding:3px 10px;border-radius:14px;border:1px solid var(--line-2);background:var(--paper-2);font-size:.72rem;color:var(--ink-3)">✓ ${s}</span>`).join('')}
       </div>
 
-      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="importFromText()">✨ Extraire la recette</button>`;
+      <div style="border-top:1px solid var(--line);padding-top:14px">
+        <div style="font-size:.71rem;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;font-family:'Cabinet Grotesk',sans-serif">
+          📋 Ou coller le texte directement
+        </div>
+        <textarea id="recipe-text-input" placeholder="Alternative : copiez-collez le texte de la page ici" 
+          style="width:100%;min-height:100px;padding:10px 14px;border:1.5px solid var(--line-2);border-radius:var(--r2);font-family:'Satoshi',sans-serif;font-size:.82rem;background:var(--paper-2);color:var(--ink);resize:vertical;line-height:1.5"></textarea>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px;width:100%;justify-content:center" onclick="importFromText()">Extraire depuis le texte</button>
+      </div>`;
   } else if(step==='loading'){
     body.innerHTML = `<div style="text-align:center;padding:32px">
       <div class="spinner" style="width:40px;height:40px;border:3px solid var(--paper-3);border-top-color:var(--fire);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px"></div>
@@ -2041,6 +2039,69 @@ function renderUrlStep(step){
   }
 }
 
+
+async function importFromUrl(){
+  const url = document.getElementById('recipe-url-input')?.value.trim();
+  if(!url||!url.startsWith('http')){toast('🔗 Entrez un lien valide');return;}
+  const groqKey = state.groqKey||localStorage.getItem('groqKey')||'';
+  if(!groqKey){toast('🔑 Configurez votre clé Groq d\'abord');return;}
+  renderUrlStep('loading');
+  try{
+    // Récupérer le contenu via proxy CORS gratuit
+    const proxyUrl = 'https://api.allorigins.win/get?url='+encodeURIComponent(url);
+    const proxyResp = await fetch(proxyUrl);
+    const proxyData = await proxyResp.json();
+    if(!proxyData.contents) throw new Error('Impossible de lire la page');
+    // Extraire le texte brut depuis le HTML
+    const tmp = document.createElement('div');
+    tmp.innerHTML = proxyData.contents;
+    // Supprimer scripts, styles, nav, footer, aside
+    tmp.querySelectorAll('script,style,nav,footer,aside,header,[class*="comment"],[class*="ad"],[class*="banner"],[class*="social"],[class*="related"],[id*="comment"],[id*="ad"]').forEach(el=>el.remove());
+    const rawText = (tmp.innerText||tmp.textContent||'').replace(/\n{3,}/g,'\n\n').trim();
+    if(rawText.length<100) throw new Error('Contenu insuffisant récupéré depuis la page');
+    // Envoyer à Groq
+    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+groqKey},
+      body:JSON.stringify({
+        model:"llama-3.3-70b-versatile",
+        max_tokens:2000,
+        temperature:0.1,
+        messages:[
+          {role:"system",content:"Tu es un assistant culinaire. Tu extrais les recettes depuis du texte et retournes UNIQUEMENT un JSON valide, sans backticks, sans texte autour."},
+          {role:"user",content:"Extrait la recette de ce texte et retourne UNIQUEMENT un JSON avec: name(string), emoji(1 emoji), time(number minutes), difficulty(\"Facile\"/\"Moyen\"/\"Expert\"), people(number défaut 4), season(array parmi [\"printemps\",\"été\",\"automne\",\"hiver\"]), course(\"aperitif\"/\"entree\"/\"plat\"/\"dessert\"), tags(array de strings), ingredients(array of {name:string,qty:string,unit:string}), steps(array of strings complets). Ignore pub, navigation, commentaires. JSON seul.\n\n"+rawText.substring(0,6000)}
+        ]
+      })
+    });
+    const data = await resp.json();
+    if(data.error){state.errorMsg='Erreur Groq: '+data.error.message;renderUrlStep('error');return;}
+    let text=(data.choices?.[0]?.message?.content||'').trim();
+    text=text.replace(/```json|```/g,'').trim();
+    let parsed;
+    try{parsed=JSON.parse(text);}
+    catch{const m=text.match(/\{[\s\S]*\}/);if(m)parsed=JSON.parse(m[0]);else throw new Error("Format invalide");}
+    let sourceName='';
+    try{sourceName=new URL(url).hostname.replace('www.','');}catch(e){}
+    state.pendingRecipe={
+      name:parsed.name||'Recette',emoji:parsed.emoji||'🍽️',
+      time:+parsed.time||30,difficulty:parsed.difficulty||'Moyen',
+      people:+parsed.people||4,
+      season:Array.isArray(parsed.season)?parsed.season:['printemps','été','automne','hiver'],
+      tags:Array.isArray(parsed.tags)?parsed.tags:['Maison'],
+      course:parsed.course||'plat',
+      ingredients:Array.isArray(parsed.ingredients)?parsed.ingredients:[],
+      steps:Array.isArray(parsed.steps)?parsed.steps:[],
+      sourceUrl:url,sourceName
+    };
+    state.photoDataUrl=null;
+    closeUrlModal();
+    document.getElementById('photo-overlay').classList.add('open');
+    renderPhotoStep('result');
+  }catch(err){
+    state.errorMsg='Erreur: '+err.message;
+    renderUrlStep('error');
+  }
+}
 
 function saveGroqKey(){
   const v = document.getElementById('groq-api-key')?.value.trim();
